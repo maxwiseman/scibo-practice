@@ -1,0 +1,197 @@
+import fs from "fs";
+import https from "https";
+import type { PDFExtractPage } from "pdf.js-extract";
+import type { LaunchOptions } from "puppeteer-core";
+// import { $ } from "bun";
+import { PDFExtract } from "pdf.js-extract";
+import puppeteer from "puppeteer-core";
+
+async function downloadPDF(url: string, outputPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (response) => {
+        const fileStream = fs.createWriteStream(outputPath);
+
+        response.pipe(fileStream);
+
+        fileStream.on("finish", () => {
+          fileStream.close();
+          console.log("Download completed");
+          resolve();
+        });
+
+        fileStream.on("error", (err) => {
+          fileStream.close();
+          reject(err);
+        });
+
+        response.on("error", (err) => {
+          fileStream.close();
+          reject(err);
+        });
+      })
+      .on("error", (err) => {
+        reject(err);
+      });
+  });
+}
+function checkFileExists(filePath: string) {
+  try {
+    // Using fs.accessSync to check file existence
+    fs.accessSync(filePath, fs.constants.F_OK);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+const args = [
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+  "--disable-infobars",
+  "--window-position=0,0",
+  "--ignore-certifcate-errors",
+  "--ignore-certifcate-errors-spki-list",
+  '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"',
+];
+const options: LaunchOptions = {
+  args: args,
+  headless: false,
+  //userDataDir: "/Users/maxwiseman/Library/Application Support/Google/Chrome",
+  userDataDir: "./tmp",
+  executablePath:
+    process.platform === "win32"
+      ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      : process.platform === "linux"
+        ? "/usr/bin/chromium-browser"
+        : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+};
+const pdfExtract = new PDFExtract();
+
+console.log("Starting...");
+const browser = await puppeteer.launch(options);
+const context = await browser.createBrowserContext({});
+const page = await context.newPage();
+
+await page.goto(
+  "https://science.osti.gov/wdts/nsb/Regional-Competitions/Resources/HS-Sample-Questions#set1",
+);
+console.log("Page loaded");
+
+const hrefs = (
+  await page.$$eval("a.pdf", (e) => e.map((element) => element.href))
+).filter(
+  (val) =>
+    typeof val === "string" &&
+    val !==
+      "https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-3/Energy-Category.pdf",
+) as string[];
+
+await browser.close();
+
+type sciboCategory =
+  | "biology"
+  | "physics"
+  | "math"
+  | "earth science"
+  | "general science"
+  | "astronomy"
+  | "chemistry";
+interface questionData {
+  bonus: boolean;
+  number: number;
+  category: sciboCategory;
+  type: "shortAnswer" | "multipleChoice";
+  question: string;
+  answer: string | { answer: string; letter: string; correct: boolean }[];
+  htmlUrl?: string;
+  originalText?: string;
+}
+
+let totalData: Partial<questionData>[] = [];
+
+for (let i = 0; i < hrefs.length; i++) {
+  const alreadyExists = checkFileExists(`./data/${i}.pdf`);
+  if (!alreadyExists) {
+    // await $`curl -o ./data/${i}.pdf ${hrefs[i]}`;
+    await downloadPDF(hrefs[i] ?? "", `./data/${i}.pdf`);
+  }
+  const url = `./data/${i}.pdf`;
+
+  try {
+    console.log("Fetching document: ", url);
+    let pages: PDFExtractPage[] = [];
+    const data = await pdfExtract.extract(url, {});
+    pages = data.pages;
+    for (let pageNum = 0; pageNum < pages.length; pageNum++) {
+      let totalText = "";
+      totalText =
+        pages[pageNum]?.content.flatMap((content) => content.str).join("") ??
+        "";
+      const questions = totalText
+        .replaceAll(/High School\s*.\s*Round\s*\d+\s*\w?\s*Page\s*\d+/gi, "")
+        .replaceAll(/Round\s*Robin\s*~?\s*Round\s*~?\s*\d+/gi, "")
+        .replaceAll(/\d*\s*Regional\s*Science\s*Bowl\s*.?/gi, "")
+        .replaceAll(/Double\s*Elimination\s*~?\s*Round\s*~?\s*\d+/gi, "")
+        .replaceAll(/\d*\s*NSB.\s*Regional\s*High\s*School\s*Questions/gi, "")
+        .replaceAll(/\d*\s*Regional\s*High\s*School\s*NSB.\s*/gi, "")
+        .replaceAll(/\d*\s*Regional\s*Science\s*Bowl\s*.\s*/gi, "")
+        .replaceAll(/\s*Round \d*\s*[A-O]?\s*/gi, "")
+        .replaceAll(/\s*Page\s*\d+/gi, "")
+        .split(/[~_]*(?=BONUS|TOSS.?UP)[~_]*/);
+
+      const regex =
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<category>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)ANSWER. (?<answer>.*)/;
+      const mcqRegex =
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<category>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
+
+      const mcqAnswerRegex =
+        /(?<letter>[X-Zx-z1-4])\) (?<answer>[^X]*?)(?=\s*[A-Z]\)|$)/g;
+
+      const formatted = questions.map((q) => {
+        const groups = regex.exec(q)?.groups;
+        let data: Partial<questionData> = {
+          bonus: groups?.type === "BONUS",
+          number: parseInt(groups?.number ?? ""),
+          category: groups?.category?.toLowerCase() as sciboCategory,
+          type:
+            groups?.type2 === "Short Answer" ? "shortAnswer" : "multipleChoice",
+          question: groups?.question,
+          answer: groups?.answer,
+          htmlUrl: `${hrefs[i]}#page=${pageNum + 1}`,
+          originalText: q,
+        };
+
+        if (data.type == "multipleChoice") {
+          const mcqMatches = data.question?.matchAll(mcqAnswerRegex);
+          if (mcqMatches === undefined) return data;
+          const mcqQuestions = Array.from(mcqMatches)
+            .map((q) => q.groups)
+            .map((i) => ({
+              answer: i?.answer ?? "",
+              letter: i?.letter ?? "",
+              correct:
+                groups?.answer?.replace(/[A-Z]\) /, "").toLowerCase() ==
+                i?.answer?.toLowerCase(),
+            }));
+          const mcqGroups = mcqRegex.exec(q)?.groups;
+          data = {
+            ...data,
+            answer: mcqQuestions,
+            question: mcqGroups?.question,
+          };
+        }
+        return data;
+      });
+      totalData = [...totalData, ...formatted];
+    }
+
+    console.log(`Closed set ${i}`);
+  } catch (err) {
+    console.error("Something went wrong!", err);
+    // i--;
+  }
+}
+// await Bun.write("./data.json", JSON.stringify(totalData));
+fs.writeFileSync("./data.json", JSON.stringify(totalData));
+console.log(`Downloaded ${totalData.length} questions`);

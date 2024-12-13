@@ -1,0 +1,31 @@
+{
+  "name": "@scibo/downloader",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "download": "node --loader ts-node/esm src/index.ts",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "devDependencies": {
+    "@scibo/eslint-config": "workspace:*",
+    "@scibo/prettier-config": "workspace:*",
+    "@scibo/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@scibo/prettier-config",
+  "dependencies": {
+    "pdf.js-extract": "^0.2.1",
+    "puppeteer-core": "^23.10.4"
+  }
+}
