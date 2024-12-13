@@ -5,29 +5,24 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
     "./client": {
-      "types": "./dist/client.d.ts",
       "default": "./src/client.ts"
     },
     "./schema": {
-      "types": "./dist/schema.d.ts",
       "default": "./src/schema.ts"
     }
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "push": "pnpm with-env drizzle-kit push",
-    "generate": "pnpm with-env drizzle-kit generate:pg",
-    "update": "pnpm run generate && pnpm run push",
-    "studio": "pnpm with-env drizzle-kit studio",
+    "push": "bun with-env drizzle-kit push",
+    "generate": "bun with-env drizzle-kit generate:pg",
+    "update": "bun run generate && bun run push",
+    "studio": "bun with-env drizzle-kit studio",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "with-env": "dotenv -e ../../.env --"
   },
@@ -36,7 +31,7 @@
     "@vercel/postgres": "^0.10.0",
     "drizzle-orm": "^0.36.4",
     "drizzle-zod": "^0.5.1",
-    "zod": "catalog:"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@scibo/eslint-config": "workspace:*",
@@ -44,9 +39,9 @@
     "@scibo/tsconfig": "workspace:*",
     "dotenv-cli": "^7.4.4",
     "drizzle-kit": "^0.28.1",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:"
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
   },
   "prettier": "@scibo/prettier-config"
 }

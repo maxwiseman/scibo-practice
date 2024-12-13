@@ -3,9 +3,14 @@
   "private": true,
   "engines": {
     "node": ">=20.18.1",
-    "pnpm": "^9.14.2"
+    "bun": "^1.1.38"
   },
-  "packageManager": "pnpm@9.14.2",
+  "packageManager": "bun@1.1.38",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ],
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
@@ -20,17 +25,17 @@
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
     "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
-    "lint:ws": "pnpm dlx sherif@latest",
-    "postinstall": "pnpm lint:ws",
+    "lint:ws": "bunx sherif@latest",
+    "postinstall": "bun lint:ws",
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add"
   },
   "devDependencies": {
     "@scibo/prettier-config": "workspace:*",
     "@turbo/gen": "^2.3.1",
-    "prettier": "catalog:",
+    "prettier": "^3.3.3",
     "turbo": "^2.3.3",
-    "typescript": "catalog:"
+    "typescript": "^5.6.3"
   },
   "prettier": "@scibo/prettier-config"
 }
