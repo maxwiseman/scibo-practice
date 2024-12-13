@@ -1,7 +1,44 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, primaryKey } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  json,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const topicEnum = pgEnum("scibo-topics", [
+  "biology",
+  "physics",
+  "math",
+  "earth science",
+  "general science",
+  "astronomy",
+  "chemistry",
+]);
+export const typeEnum = pgEnum("scibo-question-types", [
+  "shortAnswer",
+  "multipleChoice",
+]);
+
+export const Question = pgTable("question", {
+  id: uuid().notNull().primaryKey().defaultRandom(),
+  bonus: boolean().notNull(),
+  number: integer().notNull(),
+  topic: topicEnum().notNull(),
+  type: typeEnum().notNull(),
+  question: text().notNull(),
+  answer: json().$type<
+    { answer: string; letter: string; correct: boolean }[] | string
+  >(),
+  htmlUrl: text().notNull(),
+  originalText: text().notNull(),
+});
 
 export const Post = pgTable("post", (t) => ({
   id: t.uuid().notNull().primaryKey().defaultRandom(),

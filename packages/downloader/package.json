@@ -25,6 +25,7 @@
   },
   "prettier": "@scibo/prettier-config",
   "dependencies": {
+    "@scibo/db": "workspace:*",
     "pdf.js-extract": "^0.2.1",
     "puppeteer-core": "^23.10.4"
   }

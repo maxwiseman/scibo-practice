@@ -6,6 +6,9 @@ import type { LaunchOptions } from "puppeteer-core";
 import { PDFExtract } from "pdf.js-extract";
 import puppeteer from "puppeteer-core";
 
+import { db } from "@scibo/db/client";
+import { Question } from "@scibo/db/schema";
+
 async function downloadPDF(url: string, outputPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     https
@@ -40,7 +43,7 @@ function checkFileExists(filePath: string) {
     // Using fs.accessSync to check file existence
     fs.accessSync(filePath, fs.constants.F_OK);
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
@@ -79,17 +82,19 @@ await page.goto(
 console.log("Page loaded");
 
 const hrefs = (
-  await page.$$eval("a.pdf", (e) => e.map((element) => element.href))
+  await page.$$eval("a.pdf", (e) =>
+    e.map((element) => (element as { href: string }).href),
+  )
 ).filter(
   (val) =>
     typeof val === "string" &&
     val !==
       "https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-3/Energy-Category.pdf",
-) as string[];
+);
 
 await browser.close();
 
-type sciboCategory =
+type sciboTopic =
   | "biology"
   | "physics"
   | "math"
@@ -100,12 +105,12 @@ type sciboCategory =
 interface questionData {
   bonus: boolean;
   number: number;
-  category: sciboCategory;
+  topic: sciboTopic;
   type: "shortAnswer" | "multipleChoice";
   question: string;
   answer: string | { answer: string; letter: string; correct: boolean }[];
-  htmlUrl?: string;
-  originalText?: string;
+  htmlUrl: string;
+  originalText: string;
 }
 
 let totalData: Partial<questionData>[] = [];
@@ -141,9 +146,9 @@ for (let i = 0; i < hrefs.length; i++) {
         .split(/[~_]*(?=BONUS|TOSS.?UP)[~_]*/);
 
       const regex =
-        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<category>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)ANSWER. (?<answer>.*)/;
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)ANSWER. (?<answer>.*)/;
       const mcqRegex =
-        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<category>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
 
       const mcqAnswerRegex =
         /(?<letter>[X-Zx-z1-4])\) (?<answer>[^X]*?)(?=\s*[A-Z]\)|$)/g;
@@ -153,7 +158,7 @@ for (let i = 0; i < hrefs.length; i++) {
         let data: Partial<questionData> = {
           bonus: groups?.type === "BONUS",
           number: parseInt(groups?.number ?? ""),
-          category: groups?.category?.toLowerCase() as sciboCategory,
+          topic: groups?.topic?.toLowerCase() as sciboTopic,
           type:
             groups?.type2 === "Short Answer" ? "shortAnswer" : "multipleChoice",
           question: groups?.question,
@@ -194,4 +199,19 @@ for (let i = 0; i < hrefs.length; i++) {
 }
 // await Bun.write("./data.json", JSON.stringify(totalData));
 fs.writeFileSync("./data.json", JSON.stringify(totalData));
+await db
+  .insert(Question)
+  .values(
+    totalData.filter(
+      (item) =>
+        item.answer !== undefined &&
+        item.bonus !== undefined &&
+        item.htmlUrl !== undefined &&
+        item.number !== undefined &&
+        item.originalText !== undefined &&
+        item.question !== undefined &&
+        item.topic !== undefined &&
+        item.type !== undefined,
+    ) as questionData[],
+  );
 console.log(`Downloaded ${totalData.length} questions`);

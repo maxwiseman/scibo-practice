@@ -12,6 +12,7 @@
     "clean:workspaces": "turbo run clean",
     "download": "turbo -F @scibo/downloader download",
     "db:push": "turbo -F @scibo/db push",
+    "db:update": "turbo -F @scibo/db update",
     "db:studio": "turbo -F @scibo/db studio",
     "dev": "turbo watch dev --continue",
     "dev:next": "turbo watch dev -F @scibo/nextjs...",

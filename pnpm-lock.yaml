@@ -453,6 +453,9 @@ importers:
 
   packages/downloader:
     dependencies:
+      '@scibo/db':
+        specifier: workspace:*
+        version: link:../db
       pdf.js-extract:
         specifier: ^0.2.1
         version: 0.2.1
