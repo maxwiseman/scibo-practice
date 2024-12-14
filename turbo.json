@@ -32,6 +32,10 @@
     "//#clean": {
       "cache": false
     },
+    "download": {
+      "cache": false,
+      "interactive": true
+    },
     "push": {
       "cache": false,
       "interactive": true

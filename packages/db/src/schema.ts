@@ -17,6 +17,8 @@ export const topicEnum = pgEnum("scibo-topics", [
   "physics",
   "math",
   "earth science",
+  "earth and space",
+  "energy",
   "general science",
   "astronomy",
   "chemistry",
