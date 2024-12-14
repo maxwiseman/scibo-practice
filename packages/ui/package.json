@@ -5,11 +5,9 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
       "default": "./src/index.ts"
     },
     "./*": {
-      "types": "./dist/src/*.d.ts",
       "default": [
         "./src/*.ts",
         "./src/*.tsx"
@@ -18,13 +16,11 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "ui-add": "pnpm dlx shadcn@latest add && prettier src --write --list-different"
+    "ui-add": "bunx shadcn@latest add && prettier src --write --list-different"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -43,16 +39,16 @@
     "@scibo/prettier-config": "workspace:*",
     "@scibo/tailwind-config": "workspace:*",
     "@scibo/tsconfig": "workspace:*",
-    "@types/react": "catalog:react18",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
-    "react": "catalog:react18",
-    "typescript": "catalog:",
-    "zod": "catalog:"
+    "@types/react": "^18.3.11",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "react": "18.3.1",
+    "typescript": "^5.6.3",
+    "zod": "^3.23.8"
   },
   "peerDependencies": {
-    "react": "catalog:react18",
-    "zod": "catalog:"
+    "react": "18.3.1",
+    "zod": "^3.23.8"
   },
   "prettier": "@scibo/prettier-config"
 }

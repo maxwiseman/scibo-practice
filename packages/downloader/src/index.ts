@@ -99,6 +99,8 @@ type sciboTopic =
   | "physics"
   | "math"
   | "earth science"
+  | "earth and space"
+  | "energy"
   | "general science"
   | "astronomy"
   | "chemistry";
@@ -114,6 +116,8 @@ interface questionData {
 }
 
 let totalData: Partial<questionData>[] = [];
+
+await db.delete(Question);
 
 for (let i = 0; i < hrefs.length; i++) {
   const alreadyExists = checkFileExists(`./data/${i}.pdf`);
@@ -158,7 +162,7 @@ for (let i = 0; i < hrefs.length; i++) {
         let data: Partial<questionData> = {
           bonus: groups?.type === "BONUS",
           number: parseInt(groups?.number ?? ""),
-          topic: groups?.topic?.toLowerCase() as sciboTopic,
+          topic: groups?.topic?.toLowerCase().trim() as sciboTopic,
           type:
             groups?.type2 === "Short Answer" ? "shortAnswer" : "multipleChoice",
           question: groups?.question,
@@ -188,6 +192,21 @@ for (let i = 0; i < hrefs.length; i++) {
         }
         return data;
       });
+      await db
+        .insert(Question)
+        .values(
+          formatted.filter(
+            (item) =>
+              item.answer !== undefined &&
+              item.bonus !== undefined &&
+              item.htmlUrl !== undefined &&
+              item.number !== undefined &&
+              item.originalText !== undefined &&
+              item.question !== undefined &&
+              item.topic !== undefined &&
+              item.type !== undefined,
+          ) as questionData[],
+        );
       totalData = [...totalData, ...formatted];
     }
 
@@ -199,19 +218,4 @@ for (let i = 0; i < hrefs.length; i++) {
 }
 // await Bun.write("./data.json", JSON.stringify(totalData));
 fs.writeFileSync("./data.json", JSON.stringify(totalData));
-await db
-  .insert(Question)
-  .values(
-    totalData.filter(
-      (item) =>
-        item.answer !== undefined &&
-        item.bonus !== undefined &&
-        item.htmlUrl !== undefined &&
-        item.number !== undefined &&
-        item.originalText !== undefined &&
-        item.question !== undefined &&
-        item.topic !== undefined &&
-        item.type !== undefined,
-    ) as questionData[],
-  );
 console.log(`Downloaded ${totalData.length} questions`);
