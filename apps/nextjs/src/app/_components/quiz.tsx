@@ -4,8 +4,10 @@ import type { HTMLProps } from "react";
 import { useEffect, useRef, useState } from "react";
 import { IconArrowForward } from "@tabler/icons-react";
 import { AnimatePresence, motion } from "motion/react";
+import { isMobile } from "react-device-detect";
 
 import { cn } from "@scibo/ui";
+import { Button } from "@scibo/ui/button";
 import { Input } from "@scibo/ui/input";
 
 export function Quiz({
@@ -20,7 +22,7 @@ export function Quiz({
   const question = questions[questionNumber];
 
   return (
-    <div className="grid w-[60rem] place-content-center place-items-center gap-10">
+    <div className="grid w-full max-w-[60rem] place-content-center place-items-center gap-10 px-4">
       <AnimatePresence>
         {checking ? (
           <></>
@@ -92,7 +94,7 @@ export function QuizQuestion({
   return (
     <div
       // transition={{ duration: 2, ease: "easeOut" }}
-      className="flex w-[60rem] flex-col items-center gap-10"
+      className="flex w-full flex-col items-center gap-10"
     >
       <QuizPrompt
         bonus={question.bonus}
@@ -129,6 +131,15 @@ export function QuizQuestion({
           </span>{" "}
           to submit
         </div>
+      )}
+      {isMobile === true && (
+        <Button
+          suppressHydrationWarning
+          className="w-full"
+          onClick={() => onSubmit(answer)}
+        >
+          Submit
+        </Button>
       )}
     </div>
   );
