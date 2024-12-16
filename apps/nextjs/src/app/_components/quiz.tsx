@@ -86,7 +86,7 @@ export function Quiz({
               transition: { duration: 0.3, delay: 0.3 },
             }}
             style={{ gridRow: 1, gridColumn: 1 }}
-            className="w-[60rem]"
+            // className="w-[60rem]"
           >
             <QuizQuestion
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
