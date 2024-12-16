@@ -10,6 +10,8 @@ import { cn } from "@scibo/ui";
 import { Button } from "@scibo/ui/button";
 import { Input } from "@scibo/ui/input";
 
+import { Orb } from "./orb";
+
 export function Quiz({
   questions,
   debug,
@@ -25,7 +27,46 @@ export function Quiz({
     <div className="grid w-full max-w-[60rem] place-content-center place-items-center gap-10 px-4">
       <AnimatePresence>
         {checking ? (
-          <></>
+          <>
+            <motion.div
+              exit={{
+                // y: -25,
+                opacity: 0,
+                scale: 1.4,
+                transition: { ease: "easeIn", duration: 0.3 },
+              }}
+              initial={{ opacity: 0, scale: 1.45 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1.5,
+                transition: { duration: 0.3, delay: 0.3 },
+              }}
+              style={{ gridRow: 1, gridColumn: 1 }}
+            >
+              <Orb className="" blur="xl" />
+            </motion.div>
+            <motion.div
+              exit={{
+                // y: -25,
+                opacity: 0,
+                filter: "blur(10px)",
+                scale: 0.9,
+                transition: { ease: "easeIn", duration: 0.3 },
+              }}
+              initial={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                filter: "blur(0px)",
+                transition: { duration: 0.3, delay: 0.3 },
+              }}
+              className="fixed bottom-8 cursor-default text-muted-foreground/50"
+            >
+              Checking your answer...
+            </motion.div>
+          </>
         ) : (
           <motion.div
             key={`q-${questionNumber}`}
@@ -42,9 +83,10 @@ export function Quiz({
               y: 0,
               scale: 1,
               filter: "blur(0px)",
-              transition: { duration: 0.3 },
+              transition: { duration: 0.3, delay: 0.3 },
             }}
             style={{ gridRow: 1, gridColumn: 1 }}
+            className="w-[60rem]"
           >
             <QuizQuestion
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -54,7 +96,7 @@ export function Quiz({
                 setChecking(true);
                 setTimeout(() => {
                   setChecking(false);
-                }, 1000);
+                }, 3000);
                 setQuestionNumber(questionNumber + 1);
               }}
               debug={debug}

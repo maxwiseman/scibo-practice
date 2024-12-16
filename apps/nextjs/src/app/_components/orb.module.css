@@ -1,0 +1,74 @@
+.container {
+  --rotation: 0deg;
+}
+
+.mask {
+  inset: 0;
+  position: absolute;
+  z-index: 100;
+  background-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.3) 68%,
+    rgba(255, 255, 255, 1) 70%
+  );
+  /* mask-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 1) 85%,
+    rgba(0, 0, 0, 0) 100%
+  ); */
+}
+
+@property --rotation {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin {
+  from {
+    --rotation: 0deg;
+  }
+  to {
+    --rotation: 360deg;
+  }
+}
+
+.container > * {
+  width: 200px;
+  height: 200px;
+  border-radius: 25%;
+  /* backface-visibility: hidden; */
+  &:nth-child(1) {
+    animation: spin 7s linear infinite;
+    background-color: black;
+    transform: rotate3d(1, 2, 0, var(--rotation)) perspective(1000px);
+    transform-origin: center center 100px;
+  }
+  &:nth-child(2) {
+    animation: spin 10s linear infinite;
+    background-color: gray;
+    transform: rotate3d(-1, 0, -2, var(--rotation)) perspective(1000px);
+    transform-origin: center center 100px;
+  }
+  &:nth-child(3) {
+    animation: spin 10s linear infinite;
+    background-color: black;
+    transform: rotate3d(0, 2, 1, var(--rotation)) perspective(1000px);
+    transform-origin: center center 100px;
+  }
+  &:nth-child(4) {
+    animation: spin 10s linear infinite;
+    background-color: gray;
+    transform: rotate3d(0, 2, 1, var(--rotation)) perspective(1000px);
+    transform-origin: center center 100px;
+  }
+  &:nth-child(5) {
+    animation: spin 14s linear infinite;
+    background-color: darkgray;
+    transform: rotate3d(0, 2, 1, var(--rotation)) perspective(1000px);
+    transform-origin: center center 100px;
+  }
+}
