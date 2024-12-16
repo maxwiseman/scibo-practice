@@ -123,14 +123,15 @@ for (let i = 0; i < hrefs.length; i++) {
   const alreadyExists = checkFileExists(`./data/${i}.pdf`);
   if (!alreadyExists) {
     // await $`curl -o ./data/${i}.pdf ${hrefs[i]}`;
+    console.log(`Downloading ${i}.pdf`);
     await downloadPDF(hrefs[i] ?? "", `./data/${i}.pdf`);
   }
   const url = `./data/${i}.pdf`;
 
   try {
-    console.log("Fetching document: ", url);
+    console.log(`Opening set ${i}`);
     let pages: PDFExtractPage[] = [];
-    const data = await pdfExtract.extract(url, {});
+    const data = await pdfExtract.extract(url, { normalizeWhitespace: true });
     pages = data.pages;
     for (let pageNum = 0; pageNum < pages.length; pageNum++) {
       let totalText = "";
@@ -155,7 +156,7 @@ for (let i = 0; i < hrefs.length; i++) {
         /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
 
       const mcqAnswerRegex =
-        /(?<letter>[X-Zx-z1-4])\) (?<answer>[^X]*?)(?=\s*[A-Z]\)|$)/g;
+        /(?<letter>[W-Zw-z1-4])\) (?<answer>[^X]*?)(?=\s*[A-Z]\)|$)/g;
 
       const formatted = questions.map((q) => {
         const groups = regex.exec(q)?.groups;
@@ -173,6 +174,7 @@ for (let i = 0; i < hrefs.length; i++) {
 
         if (data.type == "multipleChoice") {
           const mcqMatches = data.question?.matchAll(mcqAnswerRegex);
+          // const mcqMatches = groups?.choices?.matchAll(mcqAnswerRegex);
           if (mcqMatches === undefined) return data;
           const mcqQuestions = Array.from(mcqMatches)
             .map((q) => q.groups)
