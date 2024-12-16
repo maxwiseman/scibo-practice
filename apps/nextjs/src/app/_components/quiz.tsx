@@ -118,21 +118,8 @@ export function QuizQuestion({
           {question.originalText}
         </a>
       )}
-      {question.qNumber === 0 && (
-        <div
-          onClick={() => {
-            // setQuestionNumber(question.qNumber + 1);
-          }}
-          className="flex cursor-default items-center gap-1 text-sm text-muted-foreground opacity-75"
-        >
-          <span className="inline-flex items-center gap-1 rounded-sm bg-muted p-1 px-2 text-xs">
-            <IconArrowForward className="h-3 w-3" />
-            Enter
-          </span>{" "}
-          to submit
-        </div>
-      )}
-      {isMobile === true && (
+
+      {isMobile === true ? (
         <Button
           suppressHydrationWarning
           className="w-full"
@@ -140,6 +127,23 @@ export function QuizQuestion({
         >
           Submit
         </Button>
+      ) : (
+        <>
+          {question.qNumber === 0 && (
+            <div
+              onClick={() => {
+                // setQuestionNumber(question.qNumber + 1);
+              }}
+              className="flex cursor-default items-center gap-1 text-sm text-muted-foreground opacity-75"
+            >
+              <span className="inline-flex items-center gap-1 rounded-sm bg-muted p-1 px-2 text-xs">
+                <IconArrowForward className="h-3 w-3" />
+                Enter
+              </span>{" "}
+              to submit
+            </div>
+          )}
+        </>
       )}
     </div>
   );
