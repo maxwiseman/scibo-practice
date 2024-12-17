@@ -103,12 +103,20 @@ export function Quiz({
                   const correctAnswer = question.answer.find(
                     (val) => val.correct,
                   );
-                  onCheckAnswer(val === correctAnswer?.letter);
+                  if (val === correctAnswer?.letter)
+                    onCheckAnswer(val === correctAnswer.letter);
+                  else
+                    onCheckAnswer(
+                      val === correctAnswer?.letter,
+                      correctAnswer?.answer,
+                    );
                 } else if (
                   question === undefined ||
-                  val.includes(question.answer)
+                  val.toLowerCase().includes(question.answer.toLowerCase())
                 ) {
                   onCheckAnswer(true);
+                } else if (val === "") {
+                  onCheckAnswer(false);
                 } else {
                   const data = await checkMutation.mutateAsync({
                     response: val,
