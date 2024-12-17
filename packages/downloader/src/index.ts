@@ -59,17 +59,18 @@ const args = [
 ];
 const options: LaunchOptions = {
   args: args,
-  headless: false,
+  headless: true,
   //userDataDir: "/Users/maxwiseman/Library/Application Support/Google/Chrome",
   userDataDir: "./tmp",
   executablePath:
     process.platform === "win32"
       ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
       : process.platform === "linux"
-        ? "/usr/bin/chromium-browser"
+        ? "/snap/bin/chromium"
         : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
 };
 const pdfExtract = new PDFExtract();
+const updateDB = process.argv.includes("--db");
 
 console.log("Starting...");
 const browser = await puppeteer.launch(options);
@@ -77,7 +78,7 @@ const context = await browser.createBrowserContext({});
 const page = await context.newPage();
 
 await page.goto(
-  "https://science.osti.gov/wdts/nsb/Regional-Competitions/Resources/HS-Sample-Questions#set1",
+  "https://science.osti.gov/wdts/nsb/Regional-Competitions/Resources/HS-Sample-Questions",
 );
 console.log("Page loaded");
 
@@ -117,7 +118,7 @@ interface questionData {
 
 let totalData: Partial<questionData>[] = [];
 
-await db.delete(Question);
+if (updateDB) await db.delete(Question);
 
 for (let i = 0; i < hrefs.length; i++) {
   const alreadyExists = checkFileExists(`./data/${i}.pdf`);
@@ -194,21 +195,22 @@ for (let i = 0; i < hrefs.length; i++) {
         }
         return data;
       });
-      await db
-        .insert(Question)
-        .values(
-          formatted.filter(
-            (item) =>
-              item.answer !== undefined &&
-              item.bonus !== undefined &&
-              item.htmlUrl !== undefined &&
-              item.number !== undefined &&
-              item.originalText !== undefined &&
-              item.question !== undefined &&
-              item.topic !== undefined &&
-              item.type !== undefined,
-          ) as questionData[],
-        );
+      if (updateDB)
+        await db
+          .insert(Question)
+          .values(
+            formatted.filter(
+              (item) =>
+                item.answer !== undefined &&
+                item.bonus !== undefined &&
+                item.htmlUrl !== undefined &&
+                item.number !== undefined &&
+                item.originalText !== undefined &&
+                item.question !== undefined &&
+                item.topic !== undefined &&
+                item.type !== undefined,
+            ) as questionData[],
+          );
       totalData = [...totalData, ...formatted];
     }
 

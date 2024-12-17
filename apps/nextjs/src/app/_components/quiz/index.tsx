@@ -116,7 +116,7 @@ export function Quiz({
                 ) {
                   onCheckAnswer(true);
                 } else if (val === "") {
-                  onCheckAnswer(false);
+                  onCheckAnswer(false, question.answer);
                 } else {
                   const data = await checkMutation.mutateAsync({
                     response: val,

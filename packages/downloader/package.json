@@ -10,6 +10,7 @@
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
     "download": "bun --env-file=../../.env src/index.ts",
+    "download:db": "bun --env-file=../../.env src/index.ts --db",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"

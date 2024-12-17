@@ -36,6 +36,10 @@
       "cache": false,
       "interactive": true
     },
+    "download:db": {
+      "cache": false,
+      "interactive": true
+    },
     "push": {
       "cache": false,
       "interactive": true

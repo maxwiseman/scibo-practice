@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { exampleData } from "~/example-data";
 import { api, HydrateClient } from "~/trpc/server";
 import { AuthShowcase } from "./_components/auth-showcase";
 import {
@@ -7,10 +8,22 @@ import {
   PostCardSkeleton,
   PostList,
 } from "./_components/posts";
+import { Quiz } from "./_components/quiz";
 
 export const runtime = "edge";
 
-export default function HomePage() {
+export default function Page() {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-16">
+      <Quiz
+        // debug={env.NODE_ENV === "development"}
+        questions={exampleData}
+      />
+    </div>
+  );
+}
+
+export function HomePage() {
   // You can await this here if you don't want to show Suspense fallback below
   void api.post.all.prefetch();
 
