@@ -152,9 +152,9 @@ for (let i = 0; i < hrefs.length; i++) {
         .split(/[~_]*(?=BONUS|TOSS.?UP)[~_]*/);
 
       const regex =
-        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)ANSWER. (?<answer>.*)/;
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-Za-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)ANSWER. (?<answer>.*)/;
       const mcqRegex =
-        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-Za-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
 
       const mcqAnswerRegex =
         /(?<letter>[W-Zw-z1-4])\) (?<answer>[^X]*?)(?=\s*[A-Z]\)|$)/g;
