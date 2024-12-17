@@ -19,9 +19,16 @@ export const question = z.object({
   type: typeEnum,
   question: z.string(),
   // { answer: string; letter: string; correct: boolean }[] | string
-  answer: z.array(
-    z.object({ answer: z.string(), letter: z.string(), correct: z.boolean() }),
-  ),
+  answer: z.union([
+    z.array(
+      z.object({
+        answer: z.string(),
+        letter: z.string(),
+        correct: z.boolean(),
+      }),
+    ),
+    z.string(),
+  ]),
   htmlUrl: z.string(),
   originalText: z.string(),
 });

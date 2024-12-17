@@ -1,4 +1,4 @@
-import { Orb } from "../_components/orb";
+import { Orb } from "../_components/quiz/orb";
 
 export default function Page() {
   return (

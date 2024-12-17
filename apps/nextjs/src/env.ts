@@ -17,6 +17,7 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.string().url(),
+    OPENAI_API_KEY: z.string(),
   },
 
   /**

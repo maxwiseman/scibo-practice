@@ -12,6 +12,9 @@
     },
     "./schema": {
       "default": "./src/schema.ts"
+    },
+    "./types": {
+      "default": "./src/types.ts"
     }
   },
   "license": "MIT",

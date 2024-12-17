@@ -1,4 +1,4 @@
-import type { sciboQuestion } from "./app/_components/quiz";
+import type { sciboQuestion } from "./app/_components/quiz/types";
 
 export const exampleData: sciboQuestion[] = [
   {
