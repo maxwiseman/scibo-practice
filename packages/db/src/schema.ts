@@ -35,9 +35,9 @@ export const Question = pgTable("question", {
   topic: topicEnum().notNull(),
   type: typeEnum().notNull(),
   question: text().notNull(),
-  answer: json().$type<
-    { answer: string; letter: string; correct: boolean }[] | string
-  >(),
+  answer: json()
+    .$type<{ answer: string; letter: string; correct: boolean }[] | string>()
+    .notNull(),
   htmlUrl: text().notNull(),
   originalText: text().notNull(),
 });

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { exampleData } from "~/example-data";
+// import { exampleData } from "~/example-data";
 import { api, HydrateClient } from "~/trpc/server";
 import { AuthShowcase } from "./_components/auth-showcase";
 import {
@@ -8,7 +8,7 @@ import {
   PostCardSkeleton,
   PostList,
 } from "./_components/posts";
-import { Quiz } from "./_components/quiz";
+import { Quiz } from "./_components/quiz/quiz";
 
 export const runtime = "edge";
 
@@ -16,8 +16,8 @@ export default function Page() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-16">
       <Quiz
-        // debug={env.NODE_ENV === "development"}
-        questions={exampleData}
+      // debug={env.NODE_ENV === "development"}
+      // questions={exampleData}
       />
     </div>
   );

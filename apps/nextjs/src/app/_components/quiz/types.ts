@@ -29,3 +29,13 @@ export type sciboQuestion =
       htmlUrl: string;
       originalText: string;
     };
+// export interface sciboQuestion {
+//   bonus: boolean;
+//   number: number;
+//   topic: sciboTopic;
+//   type: "multipleChoice" | "shortAnswer";
+//   question: string;
+//   answer: string | { answer: string; letter: string; correct: boolean }[];
+//   htmlUrl: string;
+//   originalText: string;
+// }

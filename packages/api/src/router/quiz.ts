@@ -3,13 +3,20 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 
+import { eq, sql } from "@scibo/db";
+import { Question } from "@scibo/db/schema";
 import { question } from "@scibo/db/types";
 
 import { publicProcedure } from "../trpc";
 
 export const quizRouter = {
   checkAnswer: publicProcedure
-    .input(z.object({ response: z.string(), question: question }))
+    .input(
+      z.object({
+        response: z.string(),
+        question: z.object({ question: z.string(), answer: z.string() }),
+      }),
+    )
     .mutation(async ({ input }) => {
       const question = input.question;
       const response = input.response;
@@ -37,5 +44,15 @@ export const quizRouter = {
         }),
       });
       return data;
+    }),
+  getQuestion: publicProcedure
+    .input(z.object({ id: z.string() }).optional())
+    .query(async ({ ctx }) => {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return (
+        await ctx.db.execute(
+          sql`select * from ${Question} ORDER BY RANDOM() LIMIT 1`,
+        )
+      ).rows[0]! as typeof Question.$inferSelect;
     }),
 } satisfies TRPCRouterRecord;

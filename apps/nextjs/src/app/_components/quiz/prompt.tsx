@@ -23,6 +23,7 @@ export function QuizPrompt({
       <h2
         className={cn(
           "w-full text-3xl leading-tight",
+          { "break-all": prompt.split(" ").length === 1 },
           { "text-5xl": prompt.split(" ").length <= 15 && resize === true },
           className,
         )}
