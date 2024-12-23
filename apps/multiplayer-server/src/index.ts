@@ -1,3 +1,5 @@
+import { env } from "bun";
+
 import { sendCatchup } from "./state";
 import { getSearchParams } from "./utils";
 
@@ -15,7 +17,7 @@ const server = Bun.serve<{ username: string; room: string }>({
   port: 8080,
   idleTimeout: 10,
 
-  fetch(req, server) {
+  async fetch(req, server) {
     const url = new URL(req.url);
     if (url.pathname === "/chat") {
       console.log(`Upgrading connection!`);
@@ -27,7 +29,13 @@ const server = Bun.serve<{ username: string; room: string }>({
         : new Response("WebSocket upgrade error", { status: 400 });
     }
 
-    return new Response(Bun.file("./src/index.html"));
+    return new Response(
+      (await Bun.file("./src/index.html").text()).replaceAll(
+        "localhost:8080",
+        env.BACKEND_URL ?? "localhost:8080",
+      ),
+      { headers: { "Content-Type": "text/html" } },
+    );
   },
 
   websocket: {

@@ -16,8 +16,8 @@
   },
   "private": true,
   "scripts": {
-    "dev": "bun --watch .",
-    "serve": "bun .",
+    "dev": "bun --env-file=../../.env --watch .",
+    "serve": "bun --env-file=../../.env .",
     "clean": "git clean -xdf .cache .nitro .output .turbo .vercel node_modules",
     "lint": "eslint",
     "format": "prettier --check . --ignore-path ../../.gitignore",
