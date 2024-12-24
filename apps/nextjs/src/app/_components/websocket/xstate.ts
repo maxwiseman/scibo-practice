@@ -71,6 +71,8 @@ const websocketStore = createStore({
           : `ws://localhost:8080/chat?username=${event.username}&userId=${event.userId}&room=${event.room}`,
       );
 
+      console.log("Env", env.NEXT_PUBLIC_BACKEND_URL);
+
       ws.onopen = () => {
         console.log("Connected!");
         websocketStore.send({
