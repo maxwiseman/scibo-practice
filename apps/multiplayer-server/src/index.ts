@@ -1,19 +1,16 @@
 import { env } from "bun";
+import { z } from "zod";
 
-import { sendCatchup } from "./state";
+import { protocolSchema } from "./schema/from-client";
+import {
+  serverMessageSchema,
+  serverUserJoinSchema,
+  serverUserLeaveSchema,
+} from "./schema/from-server";
+import { sendCatchup, storedData } from "./state";
 import { getSearchParams } from "./utils";
 
-type channelData = {
-  users: {
-    id?: string;
-    username: string;
-  }[];
-  messages: string[];
-};
-
-export const storedData: Record<string, channelData> = {};
-
-const server = Bun.serve<{ username: string; room: string }>({
+const server = Bun.serve<{ username: string; userId: string; room: string }>({
   port: 8080,
   idleTimeout: 10,
 
@@ -32,7 +29,9 @@ const server = Bun.serve<{ username: string; room: string }>({
     return new Response(
       (await Bun.file("./src/index.html").text()).replaceAll(
         "ws://localhost:8080",
-        env.BACKEND_URL ? `wss://${env.BACKEND_URL}` : "ws://localhost:8080",
+        env.NEXT_PUBLIC_BACKEND_URL
+          ? `wss://${env.NEXT_PUBLIC_BACKEND_URL}`
+          : "ws://localhost:8080",
       ),
       { headers: { "Content-Type": "text/html" } },
     );
@@ -45,23 +44,21 @@ const server = Bun.serve<{ username: string; room: string }>({
       }
       const currentChannelData = storedData[ws.data.room]!;
 
-      server.publish(ws.data.room, `${ws.data.username} has entered the chat`);
+      server.publish(
+        ws.data.room,
+        JSON.stringify({
+          type: "userJoin",
+          id: ws.data.userId,
+          username: ws.data.username,
+        } as z.infer<typeof serverUserJoinSchema>),
+      );
       ws.subscribe(ws.data.room);
 
       sendCatchup(ws);
-      currentChannelData.users.push({ username: ws.data.username });
-    },
-
-    message(ws, message) {
-      const currentChannelData = storedData[ws.data.room];
-      if (!currentChannelData) {
-        ws.close(1011, "Couldn't find room!");
-        return;
-      }
-
-      server.publish(ws.data.room, `${ws.data.username}: ${message}`);
-      console.log("Stored data:", currentChannelData);
-      currentChannelData.messages.push(`${ws.data.username}: ${message}`);
+      currentChannelData.users.push({
+        id: ws.data.userId,
+        username: ws.data.username,
+      });
     },
 
     close(ws) {
@@ -71,15 +68,49 @@ const server = Bun.serve<{ username: string; room: string }>({
         return;
       }
 
-      const msg = `${ws.data.username} has left the chat`;
+      const msg = JSON.stringify({
+        type: "userLeave",
+        id: ws.data.userId,
+      } as z.infer<typeof serverUserLeaveSchema>);
       currentChannelData.users = currentChannelData.users.filter(
-        (user) => user.username !== ws.data.username,
+        (user) => user.id !== ws.data.userId,
       );
       if (currentChannelData.users.length === 0)
         delete storedData[ws.data.room];
       console.log("Stored data:", storedData);
       ws.unsubscribe(ws.data.room);
       server.publish(ws.data.room, msg);
+    },
+
+    message(ws, message) {
+      const currentChannelData = storedData[ws.data.room];
+      if (!currentChannelData) {
+        ws.close(1011, "Couldn't find room!");
+        return;
+      }
+
+      const parsedMsg = protocolSchema.safeParse(
+        JSON.parse(message.toString()),
+      );
+      if (!parsedMsg.success || parsedMsg.data.type !== "message") {
+        console.log(parsedMsg.error);
+        console.log(JSON.parse(message.toString()));
+        ws.close(1008, `Invalid message: ${parsedMsg.error}`);
+        return;
+      }
+
+      const outgoingMsg = {
+        type: "message",
+        user: { id: ws.data.userId, username: ws.data.username },
+        content: parsedMsg.data.content,
+      } as z.infer<typeof serverMessageSchema>;
+
+      server.publish(
+        ws.data.room,
+        // `${ws.data.username}: ${parsedMsg.data.content}`,
+        JSON.stringify(outgoingMsg),
+      );
+      currentChannelData.messages.push(JSON.stringify(outgoingMsg));
     },
   },
 });

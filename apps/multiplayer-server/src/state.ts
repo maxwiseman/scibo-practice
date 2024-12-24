@@ -1,6 +1,15 @@
 import { ServerWebSocket } from "bun";
+import { z } from "zod";
 
-import { storedData } from ".";
+import type { userSchema } from "./schema/shared";
+import { serverCatchupSchema } from "./schema/from-server";
+
+type channelData = {
+  users: z.infer<typeof userSchema>[];
+  messages: string[];
+};
+
+export const storedData: Record<string, channelData> = {};
 
 export function sendCatchup(
   ws: ServerWebSocket<{
@@ -14,10 +23,17 @@ export function sendCatchup(
     return;
   }
 
+  // ws.send(
+  //   `${currentChannelData.users.length > 0 ? currentChannelData?.users.map((i) => i.username).join(", ") : "Nobody"} is here`,
+  // );
   ws.send(
-    `${currentChannelData.users.length > 0 ? currentChannelData?.users.map((i) => i.username).join(", ") : "Nobody"} is here`,
+    JSON.stringify({
+      type: "catchup",
+      users: currentChannelData.users,
+      messages: currentChannelData.messages,
+    } as z.infer<typeof serverCatchupSchema>),
   );
-  currentChannelData?.messages.forEach((msg) => {
-    ws.send(msg);
-  });
+  // currentChannelData?.messages.forEach((msg) => {
+  //   ws.send(msg);
+  // });
 }
