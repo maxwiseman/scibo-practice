@@ -31,8 +31,8 @@ const server = Bun.serve<{ username: string; room: string }>({
 
     return new Response(
       (await Bun.file("./src/index.html").text()).replaceAll(
-        "localhost:8080",
-        env.BACKEND_URL ?? "localhost:8080",
+        "ws://localhost:8080",
+        env.BACKEND_URL ? `wss://${env.BACKEND_URL}` : "ws://localhost:8080",
       ),
       { headers: { "Content-Type": "text/html" } },
     );
