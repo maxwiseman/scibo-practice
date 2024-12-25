@@ -12,6 +12,7 @@ import { env } from "~/env";
 import { handleIncomingMessage } from "./message-handler";
 
 export interface websocketContext {
+  currentUser: z.infer<typeof userSchema> | null;
   users: z.infer<typeof userSchema>[];
   messageHistory: z.infer<typeof serverMessageSchema>[];
   error: Error | null;
@@ -21,6 +22,7 @@ export interface websocketContext {
 
 const websocketStore = createStore({
   context: {
+    currentUser: null,
     users: [],
     messageHistory: [],
     error: null,
@@ -34,7 +36,6 @@ const websocketStore = createStore({
       event: { message: z.infer<typeof clientSchema> },
     ) => {
       if (context.socket) {
-        console.log("sending:", JSON.stringify(event.message));
         context.socket.send(JSON.stringify(event.message));
       }
       return {};
@@ -60,18 +61,13 @@ const websocketStore = createStore({
       context,
       event: { username: string; userId: string; room: string },
     ) => {
-      websocketStore.send({
-        type: "updateStatus",
-        status: "connecting",
-      });
+      if (context.status !== "disconnected") return {};
 
       const ws = new WebSocket(
         env.NEXT_PUBLIC_BACKEND_URL
           ? `wss://${env.NEXT_PUBLIC_BACKEND_URL}/chat?username=${event.username}&userId=${event.userId}&room=${event.room}`
           : `ws://localhost:8080/chat?username=${event.username}&userId=${event.userId}&room=${event.room}`,
       );
-
-      console.log("Env", env.NEXT_PUBLIC_BACKEND_URL);
 
       ws.onopen = () => {
         console.log("Connected!");
@@ -101,7 +97,7 @@ const websocketStore = createStore({
           messageEvent: event,
         });
       };
-      return {};
+      return { status: "connecting" } as Partial<websocketContext>;
     },
   },
 });

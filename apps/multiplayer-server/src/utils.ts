@@ -1,3 +1,19 @@
+import { z } from "zod";
+
+import { server } from ".";
+import { protocolSchema } from "./schema/from-server";
+
+export function force<T>(val: T): T {
+  return val;
+}
+
+export function publish<T extends z.infer<typeof protocolSchema>>(
+  room: string,
+  data: T,
+) {
+  server.publish(room, JSON.stringify(data));
+}
+
 export function getSearchParams(url: string) {
   // Create a URL object
   const urlObj = new URL(url);

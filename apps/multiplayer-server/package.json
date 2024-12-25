@@ -8,6 +8,7 @@
     "@types/bun": "latest"
   },
   "peerDependencies": {
+    "@scibo/db": "workspace:*",
     "@scibo/eslint-config": "workspace:*",
     "@scibo/prettier-config": "workspace:*",
     "@scibo/tailwind-config": "workspace:*",

@@ -1,18 +1,24 @@
 import { env } from "bun";
 import { z } from "zod";
 
+import { handleIncomingMessage } from "./message-handler";
 import { protocolSchema } from "./schema/from-client";
 import {
   serverMessageSchema,
   serverUserJoinSchema,
   serverUserLeaveSchema,
 } from "./schema/from-server";
+import { userSchema } from "./schema/shared";
 import { sendCatchup, storedData } from "./state";
-import { getSearchParams } from "./utils";
+import { force, getSearchParams, publish } from "./utils";
 
-const server = Bun.serve<{ username: string; userId: string; room: string }>({
+export type urlParams = {
+  username: string;
+  userId: string;
+  room: string;
+};
+export const server = Bun.serve<urlParams>({
   port: 8080,
-  idleTimeout: 10,
 
   async fetch(req, server) {
     const url = new URL(req.url);
@@ -38,53 +44,82 @@ const server = Bun.serve<{ username: string; userId: string; room: string }>({
   },
 
   websocket: {
+    idleTimeout: 240,
     open(ws) {
+      let newRoom = false;
       if (!storedData[ws.data.room]) {
-        storedData[ws.data.room] = { messages: [], users: [] };
+        storedData[ws.data.room] = {
+          messages: [],
+          users: [],
+          gameState: { stage: "lobby" },
+        };
+        newRoom = true;
       }
       const currentChannelData = storedData[ws.data.room]!;
 
-      server.publish(
-        ws.data.room,
-        JSON.stringify({
-          type: "userJoin",
-          id: ws.data.userId,
-          username: ws.data.username,
-        } as z.infer<typeof serverUserJoinSchema>),
-      );
-      ws.subscribe(ws.data.room);
-
-      sendCatchup(ws);
-      currentChannelData.users.push({
-        id: ws.data.userId,
-        username: ws.data.username,
-      });
-    },
-
-    close(ws) {
-      const currentChannelData = storedData[ws.data.room];
-      if (!currentChannelData) {
-        ws.close(1011, "Couldn't find room!");
+      if (
+        currentChannelData.users.find((i) => i.id === ws.data.userId) !==
+        undefined
+      ) {
+        ws.close(3000, "That user ID already exists in this game.");
         return;
       }
 
-      const msg = JSON.stringify({
-        type: "userLeave",
+      const userData: z.infer<typeof userSchema> = {
         id: ws.data.userId,
-      } as z.infer<typeof serverUserLeaveSchema>);
+        username: ws.data.username,
+        role: newRoom ? "host" : "player",
+      };
+
+      publish<z.infer<typeof serverUserJoinSchema>>(ws.data.room, {
+        type: "userJoin",
+        user: userData,
+      });
+      ws.subscribe(ws.data.room);
+
+      currentChannelData.users.push({ ...userData, ws });
+      sendCatchup(ws);
+    },
+
+    close(ws, code, reason) {
+      console.log("Connection closed!", code, reason);
+
+      const currentChannelData = storedData[ws.data.room];
+      if (!currentChannelData) {
+        return;
+      }
+      if (code === 3000) return;
+
+      let wasHost = false;
+      if (
+        currentChannelData.users.find((user) => user.id === ws.data.userId)
+          ?.role === "host"
+      )
+        wasHost = true;
       currentChannelData.users = currentChannelData.users.filter(
         (user) => user.id !== ws.data.userId,
       );
       if (currentChannelData.users.length === 0)
         delete storedData[ws.data.room];
-      console.log("Stored data:", storedData);
+      else if (wasHost) {
+        currentChannelData.users[0]!.role = "host";
+        publish(ws.data.room, {
+          type: "updateUser",
+          user: currentChannelData.users[0]!,
+        });
+      }
+
       ws.unsubscribe(ws.data.room);
-      server.publish(ws.data.room, msg);
+      publish(ws.data.room, {
+        type: "userLeave",
+        id: ws.data.userId,
+      });
     },
 
     message(ws, message) {
       const currentChannelData = storedData[ws.data.room];
       if (!currentChannelData) {
+        console.error("Closing connection, couldn't find room");
         ws.close(1011, "Couldn't find room!");
         return;
       }
@@ -92,25 +127,14 @@ const server = Bun.serve<{ username: string; userId: string; room: string }>({
       const parsedMsg = protocolSchema.safeParse(
         JSON.parse(message.toString()),
       );
-      if (!parsedMsg.success || parsedMsg.data.type !== "message") {
+      if (!parsedMsg.success) {
         console.log(parsedMsg.error);
-        console.log(JSON.parse(message.toString()));
+        console.error("Closing connection, invalid message");
         ws.close(1008, `Invalid message: ${parsedMsg.error}`);
         return;
       }
 
-      const outgoingMsg = {
-        type: "message",
-        user: { id: ws.data.userId, username: ws.data.username },
-        content: parsedMsg.data.content,
-      } as z.infer<typeof serverMessageSchema>;
-
-      server.publish(
-        ws.data.room,
-        // `${ws.data.username}: ${parsedMsg.data.content}`,
-        JSON.stringify(outgoingMsg),
-      );
-      currentChannelData.messages.push(JSON.stringify(outgoingMsg));
+      handleIncomingMessage(ws, currentChannelData, parsedMsg.data);
     },
   },
 });

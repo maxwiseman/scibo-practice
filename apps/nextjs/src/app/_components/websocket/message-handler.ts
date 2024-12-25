@@ -1,7 +1,6 @@
 import type { z } from "zod";
 
 import type { protocolSchema } from "@scibo/multiplayer-server/from-server";
-import { serverMessageSchema } from "@scibo/multiplayer-server/from-server";
 
 import type { websocketContext } from "./xstate";
 
@@ -18,7 +17,7 @@ export function handleIncomingMessage(
 
     case "userJoin": {
       return {
-        users: [...ctx.users, { id: msg.id, username: msg.username }],
+        users: [...ctx.users, msg.user],
       };
     }
 
@@ -31,10 +30,19 @@ export function handleIncomingMessage(
     case "catchup": {
       return {
         users: msg.users,
-        messageHistory: msg.messages.map((msgString) =>
-          serverMessageSchema.parse(JSON.parse(msgString)),
-        ),
+        messageHistory: msg.messages,
+        currentUser: msg.currentUser,
       };
     }
+
+    case "updateUser": {
+      return {
+        currentUser:
+          msg.user.id === ctx.currentUser?.id ? msg.user : ctx.currentUser,
+        users: ctx.users.map((u) => (u.id === msg.user.id ? msg.user : u)),
+      };
+    }
+    default:
+      return {};
   }
 }

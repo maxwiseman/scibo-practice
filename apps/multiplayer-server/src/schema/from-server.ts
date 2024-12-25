@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import { userSchema } from "./shared";
+import { gameStateSchema, userSchema } from "./shared";
 
 export const serverUserJoinSchema = z.object({
   type: z.literal("userJoin"),
-  id: z.string(),
-  username: z.string(),
+  user: userSchema,
+  // ...userSchema.shape,
 });
 export const serverUserLeaveSchema = z.object({
   type: z.literal("userLeave"),
@@ -19,7 +19,16 @@ export const serverMessageSchema = z.object({
 export const serverCatchupSchema = z.object({
   type: z.literal("catchup"),
   users: z.array(userSchema),
-  messages: z.array(z.string()),
+  messages: z.array(serverMessageSchema),
+  currentUser: userSchema,
+});
+export const serverUpdateUserSchema = z.object({
+  type: z.literal("updateUser"),
+  user: userSchema,
+});
+export const serverGameSettingsSchema = z.object({
+  type: z.literal("gameSettings"),
+  gameState: gameStateSchema,
 });
 
 export const protocolSchema = z.discriminatedUnion("type", [
@@ -27,4 +36,6 @@ export const protocolSchema = z.discriminatedUnion("type", [
   serverUserLeaveSchema,
   serverMessageSchema,
   serverCatchupSchema,
+  serverUpdateUserSchema,
+  serverGameSettingsSchema,
 ]);
