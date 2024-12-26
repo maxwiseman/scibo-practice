@@ -34,12 +34,22 @@ export const Question = pgTable("question", {
   number: integer().notNull(),
   topic: topicEnum().notNull(),
   type: typeEnum().notNull(),
+  pronunciations: json().$type<string[]>().notNull(),
   question: text().notNull(),
-  answer: json()
-    .$type<{ answer: string; letter: string; correct: boolean }[] | string>()
-    .notNull(),
   htmlUrl: text().notNull(),
-  originalText: text().notNull(),
+  answer: json()
+    .$type<
+      | {
+          answer: string;
+          letter: string;
+          correct: boolean;
+          pronunciations: string[];
+        }[]
+      | string
+    >()
+    .notNull(),
+  explanation: text().notNull(),
+  valid: boolean().notNull().default(true),
 });
 
 export const Post = pgTable("post", (t) => ({

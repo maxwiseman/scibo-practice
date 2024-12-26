@@ -60,7 +60,7 @@ export function QuizQuestion({
           href={question.htmlUrl}
           className="text-sm text-muted-foreground underline"
         >
-          {question.originalText}
+          {question.topic}
         </a>
       )}
 

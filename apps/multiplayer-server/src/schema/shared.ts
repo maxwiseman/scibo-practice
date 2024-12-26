@@ -73,7 +73,7 @@ export const gameSettingsSchema = z.object({
     z.object({ type: z.literal("time"), maxTime: z.number().default(10) }),
     z.object({
       type: z.literal("questions"),
-      maxQuestions: z.number().default(10),
+      maxQuestions: z.number().default(20),
     }),
   ]),
 });

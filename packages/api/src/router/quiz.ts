@@ -3,9 +3,8 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 
-import { eq, sql } from "@scibo/db";
+import { sql } from "@scibo/db";
 import { Question } from "@scibo/db/schema";
-import { question } from "@scibo/db/types";
 
 import { publicProcedure } from "../trpc";
 
@@ -51,7 +50,7 @@ export const quizRouter = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return (
         await ctx.db.execute(
-          sql`select * from ${Question} ORDER BY RANDOM() LIMIT 1`,
+          sql`select * from ${Question} WHERE ${Question.valid} = TRUE ORDER BY RANDOM() LIMIT 1`,
         )
       ).rows[0]! as typeof Question.$inferSelect;
     }),

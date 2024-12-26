@@ -1,40 +1,13 @@
-import fs, { appendFileSync } from "fs";
+import fs from "fs";
 import https from "https";
-import type OpenAI from "openai";
 import type { PDFExtractPage } from "pdf.js-extract";
 import type { LaunchOptions } from "puppeteer-core";
-import { zodResponseFormat } from "openai/helpers/zod";
 // import { $ } from "bun";
 import { PDFExtract } from "pdf.js-extract";
 import puppeteer from "puppeteer-core";
-import { z } from "zod";
 
-import { QuestionDataSchema } from "./format";
-import { systemPrompt } from "./prompts";
-
-const numbers = [
-  "zero",
-  "one",
-  "two",
-  "three",
-  "four",
-  "five",
-  "six",
-  "seven",
-  "eight",
-  "nine",
-  "ten",
-  "eleven",
-  "twelve",
-  "thirteen",
-  "fourteen",
-  "fifteen",
-  "sixteen",
-  "seventeen",
-  "eighteen",
-  "nineteen",
-  "twenty",
-];
+import { db } from "@scibo/db/client";
+import { Question } from "@scibo/db/schema";
 
 async function downloadPDF(url: string, outputPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -97,6 +70,7 @@ const options: LaunchOptions = {
         : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
 };
 const pdfExtract = new PDFExtract();
+const updateDB = process.argv.includes("--db");
 
 console.log("Starting...");
 const browser = await puppeteer.launch(options);
@@ -121,28 +95,30 @@ const hrefs = (
 
 await browser.close();
 
-// type sciboTopic =
-//   | "biology"
-//   | "physics"
-//   | "math"
-//   | "earth science"
-//   | "earth and space"
-//   | "energy"
-//   | "general science"
-//   | "astronomy"
-//   | "chemistry";
-// interface questionData {
-//   bonus: boolean;
-//   number: number;
-//   topic: sciboTopic;
-//   type: "shortAnswer" | "multipleChoice";
-//   question: string;
-//   answer: string | { answer: string; letter: string; correct: boolean }[];
-//   htmlUrl: string;
-//   originalText: string;
-// }
+type sciboTopic =
+  | "biology"
+  | "physics"
+  | "math"
+  | "earth science"
+  | "earth and space"
+  | "energy"
+  | "general science"
+  | "astronomy"
+  | "chemistry";
+interface questionData {
+  bonus: boolean;
+  number: number;
+  topic: sciboTopic;
+  type: "shortAnswer" | "multipleChoice";
+  question: string;
+  answer: string | { answer: string; letter: string; correct: boolean }[];
+  htmlUrl: string;
+  originalText: string;
+}
 
-let questionCount = 0;
+let totalData: Partial<questionData>[] = [];
+
+if (updateDB) await db.delete(Question);
 
 for (let i = 0; i < hrefs.length; i++) {
   const alreadyExists = checkFileExists(`./data/${i}.pdf`);
@@ -174,29 +150,68 @@ for (let i = 0; i < hrefs.length; i++) {
         .replaceAll(/\s*Round \d*\s*[A-O]?\s*/gi, "")
         .replaceAll(/\s*Page\s*\d+/gi, "")
         .split(/[~_]*(?=BONUS|TOSS.?UP)[~_]*/);
-      console.log(pageNum);
 
-      questions.forEach((q) => {
-        const content: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming =
-          {
-            model: "gpt-4o-mini",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: q },
-            ],
-            temperature: 0,
-            max_tokens: 2000,
-            response_format: zodResponseFormat(
-              z.object({ questions: z.array(QuestionDataSchema) }),
-              "question-parser",
-            ),
+      const regex =
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-Za-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)ANSWER. (?<answer>.*)/;
+      const mcqRegex =
+        /.*(?<type>TOSS.UP|BONUS)\s*(?<number>\d+)[).]\s*(?<topic>[A-Za-z\s]+)\s*.?\s+(?<type2>Short [Aa]nswer|Multiple [Cc]hoice)[.]?\s*(?<question>.*?)[A-Z]\).*ANSWER. (?<answer>.*)/;
+
+      const mcqAnswerRegex =
+        /(?<letter>[W-Zw-z1-4])\) (?<answer>[^X]*?)(?=\s*[A-Z]\)|$)/g;
+
+      const formatted = questions.map((q) => {
+        const groups = regex.exec(q)?.groups;
+        let data: Partial<questionData> = {
+          bonus: groups?.type === "BONUS",
+          number: parseInt(groups?.number ?? ""),
+          topic: groups?.topic?.toLowerCase().trim() as sciboTopic,
+          type:
+            groups?.type2 === "Short Answer" ? "shortAnswer" : "multipleChoice",
+          question: groups?.question,
+          answer: groups?.answer,
+          htmlUrl: `${hrefs[i]}#page=${pageNum + 1}`,
+          originalText: q,
+        };
+
+        if (data.type == "multipleChoice") {
+          const mcqMatches = data.question?.matchAll(mcqAnswerRegex);
+          // const mcqMatches = groups?.choices?.matchAll(mcqAnswerRegex);
+          if (mcqMatches === undefined) return data;
+          const mcqQuestions = Array.from(mcqMatches)
+            .map((q) => q.groups)
+            .map((i) => ({
+              answer: i?.answer ?? "",
+              letter: i?.letter ?? "",
+              correct:
+                groups?.answer?.replace(/[A-Z]\) /, "").toLowerCase() ==
+                i?.answer?.toLowerCase(),
+            }));
+          const mcqGroups = mcqRegex.exec(q)?.groups;
+          data = {
+            ...data,
+            answer: mcqQuestions,
+            question: mcqGroups?.question,
           };
-        appendFileSync(
-          `./batches/${numbers[Math.floor(questionCount / 1000)]}.jsonl`,
-          `${JSON.stringify({ custom_id: `${hrefs[i]}-=-${pageNum}-=-${questionCount}`, method: "POST", url: "/v1/chat/completions", body: content }).replaceAll(/[\r\n]+/g, "")}\n`,
-        );
-        questionCount++;
+        }
+        return data;
       });
+      // if (updateDB)
+      //   await db
+      //     .insert(Question)
+      //     .values(
+      //       formatted.filter(
+      //         (item) =>
+      //           item.answer !== undefined &&
+      //           item.bonus !== undefined &&
+      //           item.htmlUrl !== undefined &&
+      //           item.number !== undefined &&
+      //           item.originalText !== undefined &&
+      //           item.question !== undefined &&
+      //           item.topic !== undefined &&
+      //           item.type !== undefined,
+      //       ) as questionData[],
+      //     );
+      totalData = [...totalData, ...formatted];
     }
 
     console.log(`Closed set ${i}`);
@@ -205,6 +220,6 @@ for (let i = 0; i < hrefs.length; i++) {
     // i--;
   }
 }
-
-console.log(`Added ${questionCount} questions to the batch`);
-// fs.writeFileSync("./batch.jsonl", JSON.stringify(totalData));
+// await Bun.write("./data.json", JSON.stringify(totalData));
+fs.writeFileSync("./data.json", JSON.stringify(totalData));
+console.log(`Downloaded ${totalData.length} questions`);

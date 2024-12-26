@@ -2,6 +2,10 @@ import type { HTMLProps } from "react";
 
 import { cn } from "@scibo/ui";
 
+import "katex/dist/katex.min.css";
+
+import Latex from "react-latex-next";
+
 export function QuizPrompt({
   prompt,
   bonus,
@@ -29,7 +33,9 @@ export function QuizPrompt({
         )}
         {...props}
       >
-        {prompt}
+        <Latex delimiters={[{ left: "$$", right: "$$", display: false }]}>
+          {prompt}
+        </Latex>
       </h2>
     </div>
   );

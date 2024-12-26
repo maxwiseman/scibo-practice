@@ -15,9 +15,16 @@ export type sciboQuestion =
       topic: sciboTopic;
       type: "multipleChoice";
       question: string;
-      answer: { answer: string; letter: string; correct: boolean }[];
+      answer: {
+        answer: string;
+        letter: string;
+        correct: boolean;
+        pronunciations: string[];
+      }[];
       htmlUrl: string;
-      originalText: string;
+      explanation: string;
+      valid: boolean;
+      pronunciations: string[];
     }
   | {
       bonus: boolean;
@@ -27,7 +34,9 @@ export type sciboQuestion =
       question: string;
       answer: string;
       htmlUrl: string;
-      originalText: string;
+      explanation: string;
+      valid: boolean;
+      pronunciations: string[];
     };
 // export interface sciboQuestion {
 //   bonus: boolean;

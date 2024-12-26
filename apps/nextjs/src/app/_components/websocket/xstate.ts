@@ -99,6 +99,10 @@ const websocketStore = createStore({
       };
       return { status: "connecting" } as Partial<websocketContext>;
     },
+    disconnect: (context) => {
+      context.socket?.close(1000, "User disconnected");
+      return {};
+    },
   },
 });
 

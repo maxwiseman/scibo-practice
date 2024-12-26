@@ -2,6 +2,9 @@
 
 import type { HTMLProps } from "react";
 import { useEffect } from "react";
+import Latex from "react-latex-next";
+
+import "katex/dist/katex.min.css";
 
 import { cn } from "@scibo/ui";
 
@@ -41,7 +44,10 @@ export function QuizMcqAnswers({
   }, [answers, onSelectChange]);
 
   return (
-    <div className={cn("grid w-full grid-cols-2 gap-8", className)} {...props}>
+    <div
+      className={cn("grid w-full grid-cols-1 gap-8 md:grid-cols-2", className)}
+      {...props}
+    >
       {answers.map((item) => (
         <QuizMcqButton
           key={`${item.letter}-${item.answer}`}
@@ -99,7 +105,9 @@ export function QuizMcqButton({
           },
         )}
       >
-        {text}
+        <Latex delimiters={[{ left: "$$", right: "$$", display: false }]}>
+          {text}
+        </Latex>
       </div>
     </button>
   );

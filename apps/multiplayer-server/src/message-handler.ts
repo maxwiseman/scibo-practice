@@ -37,7 +37,7 @@ export function handleIncomingMessage(
         return;
       const user = currentChannelData.users.find((i) => i.id === msg.userId);
       if (user && user.role !== "host") {
-        user.ws.close(4000, "You have been kicked from the room!");
+        user.ws.close(4000, "You have been kicked from the game!");
       }
       break;
     }

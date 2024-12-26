@@ -26,8 +26,6 @@ export function Quiz({ debug }: { debug?: boolean }) {
     else toast.error("Incorrect!", { description: explanation });
   }
 
-  console.log("question", question);
-
   return (
     <div className="grid w-full max-w-[60rem] place-content-center place-items-center gap-10 px-4">
       <AnimatePresence>
