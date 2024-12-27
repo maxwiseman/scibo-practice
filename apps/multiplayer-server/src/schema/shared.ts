@@ -14,15 +14,18 @@ export const mcqQuestionSchema = z.object({
   topic: topicEnum,
   type: z.literal("multipleChoice"),
   question: z.string(),
+  pronunciations: z.array(z.string()),
   answer: z.array(
     z.object({
-      answer: z.string(),
+      answer: z.coerce.string(),
       letter: z.string(),
       correct: z.boolean(),
+      pronunciations: z.array(z.string()),
     }),
   ),
   htmlUrl: z.string(),
-  originalText: z.string(),
+  explanation: z.string(),
+  valid: z.boolean(),
 });
 export const saqQuestionSchema = z.object({
   bonus: z.boolean(),
@@ -30,9 +33,11 @@ export const saqQuestionSchema = z.object({
   topic: topicEnum,
   type: z.literal("shortAnswer"),
   question: z.string(),
-  answer: z.string(),
+  pronunciations: z.array(z.string()),
+  answer: z.coerce.string(),
   htmlUrl: z.string(),
-  originalText: z.string(),
+  explanation: z.string(),
+  valid: z.boolean(),
 });
 export const questionSchema = z.discriminatedUnion("type", [
   saqQuestionSchema,
@@ -45,7 +50,11 @@ export const questionStateSchema = z.object({
   stage: z.literal("question"),
   question: z.intersection(
     questionSchema,
-    z.object({ asked: z.string().datetime(), questionTime: z.number() }),
+    z.object({
+      asked: z.string().datetime(),
+      questionTime: z.number(),
+      qNumber: z.number(),
+    }),
   ),
 });
 export const gameStateSchema = z.discriminatedUnion("stage", [

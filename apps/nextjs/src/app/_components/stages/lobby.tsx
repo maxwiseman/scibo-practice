@@ -109,48 +109,61 @@ export function Lobby() {
               variant="outline"
               icon={<IconLogout />}
             />
+            {self.role === "host" && (
+              <Button
+                disabled={Object.keys(users).length <= 1}
+                className="ml-1 w-max"
+                onClick={() => {
+                  websocketStore.send({
+                    type: "sendMessage",
+                    message: { type: "startGame" },
+                  });
+                }}
+              >
+                Start Game
+              </Button>
+            )}
           </div>
         </CardHeader>
 
         <CardContent className="grid grid-cols-4 gap-2 gap-x-4">
-          {new Array(24).fill(null).map((_, i) => (
-            <Button
-              variant="secondary"
-              disabled={
-                users[i] === undefined ||
-                (users[i].role === "host" && self.role === "host")
-              }
-              onClick={() => {
-                websocketStore.send({
-                  type: "sendMessage",
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                  message: { type: "kickUser", userId: users[i]!.id },
-                });
-              }}
-              className={cn({ "cursor-default": self.role !== "host" })}
-            >
-              <div className="flex w-full max-w-full items-center justify-between gap-2">
-                <span
-                  style={{
-                    maskImage:
-                      "linear-gradient(-90deg, #000, #000, transparent 0, #000 10px)",
-                  }}
-                  className="line-clamp-1 w-full max-w-full text-left"
-                >
-                  {users[i]?.username}
-                </span>
-                <div className="flex min-w-max gap-2">
-                  {users[i]?.id === self.id && <IconUser className="h-4 w-4" />}
-                  {users[i]?.role === "host" && (
-                    <IconCrown className="h-4 w-4" />
-                  )}
+          {new Array(24).fill(null).map((_, i) => {
+            const user = Object.values(users)[i]!;
+            return (
+              <Button
+                variant="secondary"
+                disabled={
+                  user === undefined ||
+                  (user.role === "host" && self.role === "host")
+                }
+                onClick={() => {
+                  websocketStore.send({
+                    type: "sendMessage",
+                    message: { type: "kickUser", userId: user.id },
+                  });
+                }}
+                className={cn({ "cursor-default": self.role !== "host" })}
+              >
+                <div className="flex w-full max-w-full items-center justify-between gap-2">
+                  <span
+                    style={{
+                      maskImage:
+                        "linear-gradient(-90deg, #000, #000, transparent 0, #000 10px)",
+                    }}
+                    className="line-clamp-1 w-full max-w-full text-left"
+                  >
+                    {user?.username}
+                  </span>
+                  <div className="flex min-w-max gap-2">
+                    {user?.id === self.id && <IconUser className="h-4 w-4" />}
+                    {user?.role === "host" && <IconCrown className="h-4 w-4" />}
+                  </div>
                 </div>
-              </div>
-            </Button>
-          ))}
+              </Button>
+            );
+          })}
         </CardContent>
       </Card>
-      {self.role === "host" && <Button className="w-max">Start Game</Button>}
     </div>
   );
 }
@@ -174,7 +187,28 @@ export function GameSettingsDialog({
                 console.log(e);
               }}
               checked={false}
-              label="Testing"
+              label="Timing"
+            />
+            <LabeledSwitch
+              onChange={(e) => {
+                console.log(e);
+              }}
+              checked={false}
+              label="Bonus Questions"
+            />
+            <LabeledSwitch
+              onChange={(e) => {
+                console.log(e);
+              }}
+              checked={false}
+              label="Overtime"
+            />
+            <LabeledSwitch
+              onChange={(e) => {
+                console.log(e);
+              }}
+              checked={false}
+              label="Teams"
             />
           </div>
           <Button>Save</Button>

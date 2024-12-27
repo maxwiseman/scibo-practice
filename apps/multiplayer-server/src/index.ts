@@ -3,14 +3,10 @@ import { z } from "zod";
 
 import { handleIncomingMessage } from "./message-handler";
 import { protocolSchema } from "./schema/from-client";
-import {
-  serverMessageSchema,
-  serverUserJoinSchema,
-  serverUserLeaveSchema,
-} from "./schema/from-server";
+import { serverUserJoinSchema } from "./schema/from-server";
 import { userSchema } from "./schema/shared";
 import { sendCatchup, storedData } from "./state";
-import { force, getSearchParams, publish } from "./utils";
+import { getSearchParams, publish } from "./utils";
 
 export type urlParams = {
   username: string;
@@ -22,7 +18,7 @@ export const server = Bun.serve<urlParams>({
 
   async fetch(req, server) {
     const url = new URL(req.url);
-    if (url.pathname === "/chat") {
+    if (url.pathname === "/ws") {
       console.log(`Upgrading connection!`);
       const success = server.upgrade(req, {
         data: getSearchParams(req.url),
@@ -50,17 +46,14 @@ export const server = Bun.serve<urlParams>({
       if (!storedData[ws.data.room]) {
         storedData[ws.data.room] = {
           messages: [],
-          users: [],
+          users: {},
           gameState: { stage: "lobby" },
         };
         newRoom = true;
       }
       const currentChannelData = storedData[ws.data.room]!;
 
-      if (
-        currentChannelData.users.find((i) => i.id === ws.data.userId) !==
-        undefined
-      ) {
+      if (currentChannelData.users[ws.data.userId] !== undefined) {
         ws.close(3000, "That user ID already exists in this game.");
         return;
       }
@@ -77,7 +70,7 @@ export const server = Bun.serve<urlParams>({
       });
       ws.subscribe(ws.data.room);
 
-      currentChannelData.users.push({ ...userData, ws });
+      currentChannelData.users[userData.id] = { ...userData, ws };
       sendCatchup(ws);
     },
 
@@ -91,21 +84,17 @@ export const server = Bun.serve<urlParams>({
       if (code === 3000) return;
 
       let wasHost = false;
-      if (
-        currentChannelData.users.find((user) => user.id === ws.data.userId)
-          ?.role === "host"
-      )
+      if (currentChannelData.users[ws.data.userId]?.role === "host")
         wasHost = true;
-      currentChannelData.users = currentChannelData.users.filter(
-        (user) => user.id !== ws.data.userId,
-      );
-      if (currentChannelData.users.length === 0)
+      delete currentChannelData.users[ws.data.userId];
+      if (Object.keys(currentChannelData.users).length === 0)
         delete storedData[ws.data.room];
       else if (wasHost) {
-        currentChannelData.users[0]!.role = "host";
+        const firstUserId = Object.keys(currentChannelData.users)[0]!;
+        currentChannelData.users[firstUserId]!.role = "host";
         publish(ws.data.room, {
           type: "updateUser",
-          user: currentChannelData.users[0]!,
+          user: currentChannelData.users[firstUserId]!,
         });
       }
 

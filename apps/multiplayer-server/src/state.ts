@@ -6,9 +6,12 @@ import { urlParams } from ".";
 import { serverCatchupSchema, serverMessageSchema } from "./schema/from-server";
 
 export type channelData = {
-  users: (z.infer<typeof userSchema> & {
-    ws: ServerWebSocket<urlParams>;
-  })[];
+  users: Record<
+    string,
+    z.infer<typeof userSchema> & {
+      ws: ServerWebSocket<urlParams>;
+    }
+  >;
   messages: z.infer<typeof serverMessageSchema>[];
   gameState: z.infer<typeof gameStateSchema>;
 };
@@ -26,7 +29,7 @@ export function sendCatchup(ws: ServerWebSocket<urlParams>) {
     type: "catchup",
     users: currentChannelData.users,
     messages: currentChannelData.messages,
-    currentUser: currentChannelData.users.find((i) => i.id === ws.data.userId)!,
+    currentUser: currentChannelData.users[ws.data.userId]!,
   };
 
   ws.send(JSON.stringify(msg));

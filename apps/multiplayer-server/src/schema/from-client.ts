@@ -10,13 +10,12 @@ export const clientKickSchema = z.object({
   type: z.literal("kickUser"),
   userId: z.string(),
 });
-export const clientGameSettingsSchema = z.object({
-  type: z.literal("gameSettings"),
-  stage: gameStages,
+export const clientStartGameSchema = z.object({
+  type: z.literal("startGame"),
 });
 
 export const protocolSchema = z.discriminatedUnion("type", [
   clientMessageSchema,
   clientKickSchema,
-  clientGameSettingsSchema,
+  clientStartGameSchema,
 ]);

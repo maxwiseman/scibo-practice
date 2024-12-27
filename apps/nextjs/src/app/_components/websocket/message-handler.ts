@@ -17,13 +17,14 @@ export function handleIncomingMessage(
 
     case "userJoin": {
       return {
-        users: [...ctx.users, msg.user],
+        users: { ...ctx.users, [msg.user.id]: msg.user },
       };
     }
 
     case "userLeave": {
+      const { [msg.id]: omitted, ...rest } = ctx.users;
       return {
-        users: ctx.users.filter((u) => u.id !== msg.id),
+        users: rest,
       };
     }
 
@@ -39,9 +40,16 @@ export function handleIncomingMessage(
       return {
         currentUser:
           msg.user.id === ctx.currentUser?.id ? msg.user : ctx.currentUser,
-        users: ctx.users.map((u) => (u.id === msg.user.id ? msg.user : u)),
+        users: { ...ctx.users, [msg.user.id]: msg.user },
       };
     }
+
+    case "updateGameState": {
+      return {
+        state: msg.state,
+      };
+    }
+
     default:
       return {};
   }

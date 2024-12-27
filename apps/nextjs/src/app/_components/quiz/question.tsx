@@ -74,7 +74,7 @@ export function QuizQuestion({
         </Button>
       ) : (
         <>
-          {question.qNumber === 0 && (
+          {question.qNumber === 1 && (
             <div
               onClick={() => {
                 // setQuestionNumber(question.qNumber + 1);

@@ -14,7 +14,7 @@ export const runtime = "edge";
 
 export default function Page() {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-16">
+    <div className="flex h-full min-h-max w-full flex-col items-center justify-center gap-16">
       <Quiz
       // debug={env.NODE_ENV === "development"}
       // questions={exampleData}

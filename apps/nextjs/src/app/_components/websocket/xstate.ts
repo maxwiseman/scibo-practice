@@ -4,7 +4,10 @@ import { createStore } from "@xstate/store";
 
 import type { protocolSchema as clientSchema } from "@scibo/multiplayer-server/from-client";
 import type { serverMessageSchema } from "@scibo/multiplayer-server/from-server";
-import type { userSchema } from "@scibo/multiplayer-server/shared";
+import type {
+  gameStateSchema,
+  userSchema,
+} from "@scibo/multiplayer-server/shared";
 import { protocolSchema as serverSchema } from "@scibo/multiplayer-server/from-server";
 import { toast } from "@scibo/ui/toast";
 
@@ -13,20 +16,22 @@ import { handleIncomingMessage } from "./message-handler";
 
 export interface websocketContext {
   currentUser: z.infer<typeof userSchema> | null;
-  users: z.infer<typeof userSchema>[];
+  users: Record<string, z.infer<typeof userSchema>>;
   messageHistory: z.infer<typeof serverMessageSchema>[];
   error: Error | null;
   status: "connecting" | "connected" | "disconnected";
+  state: z.infer<typeof gameStateSchema>;
   socket: WebSocket | null;
 }
 
 const websocketStore = createStore({
   context: {
     currentUser: null,
-    users: [],
+    users: {},
     messageHistory: [],
     error: null,
     status: "disconnected",
+    state: { stage: "lobby" },
     socket: null,
   } as websocketContext,
   on: {
@@ -49,6 +54,7 @@ const websocketStore = createStore({
       );
       if (!parsedMsg.success) {
         toast.error("Invalid message received!");
+        console.error(event.messageEvent.data, parsedMsg.error);
         return {};
       }
 
@@ -65,8 +71,8 @@ const websocketStore = createStore({
 
       const ws = new WebSocket(
         env.NEXT_PUBLIC_BACKEND_URL
-          ? `wss://${env.NEXT_PUBLIC_BACKEND_URL}/chat?username=${event.username}&userId=${event.userId}&room=${event.room}`
-          : `ws://localhost:8080/chat?username=${event.username}&userId=${event.userId}&room=${event.room}`,
+          ? `wss://${env.NEXT_PUBLIC_BACKEND_URL}/ws?username=${event.username}&userId=${event.userId}&room=${event.room}`
+          : `ws://localhost:8080/ws?username=${event.username}&userId=${event.userId}&room=${event.room}`,
       );
 
       ws.onopen = () => {
@@ -84,7 +90,7 @@ const websocketStore = createStore({
           socket: null,
           status: "disconnected",
           messageHistory: [],
-          users: [],
+          users: {},
           error: event.reason ? new Error(event.reason) : null,
         });
         if (event.reason) toast.error(event.reason);

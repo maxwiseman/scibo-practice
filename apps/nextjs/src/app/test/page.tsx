@@ -6,6 +6,7 @@ import { useSelector } from "@xstate/store/react";
 import { Button } from "@scibo/ui/button";
 import { Input } from "@scibo/ui/input";
 
+import { QuizQuestion } from "../_components/quiz/question";
 import { Lobby } from "../_components/stages/lobby";
 import websocketStore from "../_components/websocket/xstate";
 
@@ -13,11 +14,22 @@ import websocketStore from "../_components/websocket/xstate";
 // import { Quiz } from "../_components/quiz/quiz";
 //
 export default function Page() {
-  return (
-    <div className="flex h-full w-full items-center justify-center">
-      <Lobby />
-    </div>
-  );
+  const state = useSelector(websocketStore, (state) => state.context.state);
+
+  if (state.stage === "lobby")
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Lobby />
+      </div>
+    );
+  if (state.stage === "question")
+    return (
+      <div className="flex h-full min-h-max w-full items-center justify-center p-4">
+        <div className="max-w-[60rem]">
+          <QuizQuestion onSubmit={() => { }} question={state.question} />
+        </div>
+      </div>
+    );
 }
 
 // export default function Page() {
