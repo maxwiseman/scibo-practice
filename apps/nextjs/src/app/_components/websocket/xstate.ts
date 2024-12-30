@@ -106,6 +106,18 @@ const websocketStore = createStore({
       return { status: "connecting" } as Partial<websocketContext>;
     },
     disconnect: (context) => {
+      websocketStore.send({
+        type: "updateStatus",
+        ...{
+          currentUser: null,
+          users: {},
+          messageHistory: [],
+          error: null,
+          status: "disconnected",
+          state: { stage: "lobby" },
+          socket: null,
+        },
+      });
       context.socket?.close(1000, "User disconnected");
       return {};
     },

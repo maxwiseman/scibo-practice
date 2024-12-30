@@ -74,7 +74,10 @@ export async function handleIncomingMessage(
 
         if (
           Object.values(currentChannelData.users).length ===
-          Object.values(currentChannelData.gameState.answers).length
+          Object.values(currentChannelData.gameState.answers).length &&
+          !Object.values(currentChannelData.gameState.answers)
+            .map((a) => a.correct)
+            .includes("grading")
         ) {
           console.log(
             "Everyone has answered!",
@@ -96,7 +99,7 @@ export async function handleIncomingMessage(
         if (msg.answer.toLowerCase() === correctAnswer?.letter.toLowerCase()) {
           // send back true
           handleAllAnswers({
-            correct: true,
+            correct: "correct",
             time: answerTime,
             answer: msg.answer,
           });
@@ -104,7 +107,7 @@ export async function handleIncomingMessage(
         } else {
           // send back false
           handleAllAnswers({
-            correct: false,
+            correct: "incorrect",
             time: answerTime,
             answer: msg.answer,
           });
@@ -115,12 +118,17 @@ export async function handleIncomingMessage(
       if (question.answer.toLowerCase().includes(msg.answer.toLowerCase())) {
         // send back true
         handleAllAnswers({
-          correct: true,
+          correct: "correct",
           time: answerTime,
           answer: msg.answer,
         });
         return;
       }
+      handleAllAnswers({
+        correct: "grading",
+        time: answerTime,
+        answer: msg.answer,
+      });
       const data = await generateObject({
         model: openai("gpt-4o-mini", { structuredOutputs: true }),
         prompt: `Your job is to determine whether or not a participant's answer to a question is correct or not. If they are wrong, give a SHORT, neutral explanation as if you are talking to the participant. THE ANSWER IS CORRECT EVEN IF THEY MADE A SPELLING OR GRAMMAR ERROR! The question information is as follows:
@@ -139,7 +147,7 @@ export async function handleIncomingMessage(
         }),
       });
       handleAllAnswers({
-        correct: data.object.correct,
+        correct: data.object.correct ? "correct" : "incorrect",
         time: answerTime,
         answer: msg.answer,
       });
@@ -173,7 +181,7 @@ async function nextQuestion(
       ...serverQuestionSchema.parse(nextQuestionData),
       asked: new Date(),
       questionTime: 10,
-      qNumber: 1,
+      qNumber: lastQuestionData ? lastQuestionData.qNumber + 1 : 1,
     },
     answers: {},
   };
