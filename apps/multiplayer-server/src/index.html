@@ -34,7 +34,7 @@
 
       // Create a WebSocket connection
       const socket = new WebSocket(
-        `ws://localhost:8080/chat?username=${username}&room=group-chat`,
+        `ws://localhost:8080/ws?username=${username}&userId=${username}&room=group-chat`,
       );
 
       // Get references to the form and the messages list

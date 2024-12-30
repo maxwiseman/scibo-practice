@@ -8,26 +8,25 @@ export const userSchema = z.object({
   role: z.enum(["player", "spectator", "host"]).default("player"),
 });
 
-export const mcqQuestionSchema = z.object({
+export const serverMcqAnswerSchema = z.object({
+  answer: z.coerce.string(),
+  letter: z.string(),
+  correct: z.boolean(),
+  pronunciations: z.array(z.string()),
+});
+export const serverMcqQuestionSchema = z.object({
   bonus: z.boolean(),
   number: z.number(),
   topic: topicEnum,
   type: z.literal("multipleChoice"),
   question: z.string(),
   pronunciations: z.array(z.string()),
-  answer: z.array(
-    z.object({
-      answer: z.coerce.string(),
-      letter: z.string(),
-      correct: z.boolean(),
-      pronunciations: z.array(z.string()),
-    }),
-  ),
+  answer: z.array(serverMcqAnswerSchema),
   htmlUrl: z.string(),
   explanation: z.string(),
   valid: z.boolean(),
 });
-export const saqQuestionSchema = z.object({
+export const serverSaqQuestionSchema = z.object({
   bonus: z.boolean(),
   number: z.number(),
   topic: topicEnum,
@@ -39,28 +38,48 @@ export const saqQuestionSchema = z.object({
   explanation: z.string(),
   valid: z.boolean(),
 });
-export const questionSchema = z.discriminatedUnion("type", [
-  saqQuestionSchema,
-  mcqQuestionSchema,
+
+export const clientMcqAnswerSchema = z.object({
+  answer: z.coerce.string(),
+  letter: z.string(),
+  // correct: z.boolean().optional(),
+  pronunciations: z.array(z.string()),
+});
+export const clientMcqQuestionSchema = z.object({
+  bonus: z.boolean(),
+  number: z.number(),
+  topic: topicEnum,
+  type: z.literal("multipleChoice"),
+  question: z.string(),
+  pronunciations: z.array(z.string()),
+  answer: z.array(clientMcqAnswerSchema),
+  htmlUrl: z.string(),
+  explanation: z.string(),
+  valid: z.boolean(),
+});
+export const clientSaqQuestionSchema = z.object({
+  bonus: z.boolean(),
+  number: z.number(),
+  topic: topicEnum,
+  type: z.literal("shortAnswer"),
+  question: z.string(),
+  pronunciations: z.array(z.string()),
+  // answer: z.coerce.string().optional(),
+  htmlUrl: z.string(),
+  explanation: z.string(),
+  valid: z.boolean(),
+});
+export const serverQuestionSchema = z.discriminatedUnion("type", [
+  serverSaqQuestionSchema,
+  serverMcqQuestionSchema,
+]);
+export const clientQuestionSchema = z.discriminatedUnion("type", [
+  clientSaqQuestionSchema,
+  clientMcqQuestionSchema,
 ]);
 
 export const gameStages = z.enum(["lobby", "question"]);
 export const lobbyStateSchema = z.object({ stage: z.literal("lobby") });
-export const questionStateSchema = z.object({
-  stage: z.literal("question"),
-  question: z.intersection(
-    questionSchema,
-    z.object({
-      asked: z.string().datetime(),
-      questionTime: z.number(),
-      qNumber: z.number(),
-    }),
-  ),
-});
-export const gameStateSchema = z.discriminatedUnion("stage", [
-  lobbyStateSchema,
-  questionStateSchema,
-]);
 
 export const gameSettingsSchema = z.object({
   timing: z.object({

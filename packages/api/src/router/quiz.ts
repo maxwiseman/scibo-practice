@@ -21,7 +21,7 @@ export const quizRouter = {
       const response = input.response;
       // return ctx.db.select().from(schema.post).orderBy(desc(schema.post.id));
       const data = await generateObject({
-        model: openai("gpt-4o-mini"),
+        model: openai("gpt-4o-mini", { structuredOutputs: true }),
         prompt: `Your job is to determine whether or not a participant's answer to a question is correct or not. If they are wrong, give a neutral explanation in 3rd person. THE ANSWER IS CORRECT EVEN IF THEY MADE A SPELLING OR GRAMMAR ERROR! The question information is as follows:
                         Question: ${question.question}
                         Answer: ${JSON.stringify(question.answer)}
@@ -39,7 +39,7 @@ export const quizRouter = {
           //   .describe(
           //     "Some questions may be malformed or otherwise impossible. For example, the question may not give all the neccessary information to complete the task. ONLY IF THAT IS THE CASE, you may set this to true so that the question will not count.",
           //   ),
-          explanation: z.string().optional(),
+          explanation: z.string().nullable(),
         }),
       });
       return data;

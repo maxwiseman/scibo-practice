@@ -9,6 +9,7 @@ import type { sciboQuestion } from "./types";
 // import type { sciboQuestion } from "./types";
 import { api } from "~/trpc/react";
 import { blurTransition } from "../blur-transition";
+import { SpinText } from "../spin-text";
 import { Orb } from "./orb";
 import { QuizQuestion } from "./question";
 
@@ -21,7 +22,7 @@ export function Quiz({ debug }: { debug?: boolean }) {
   });
   const question = getQuestion.data as sciboQuestion;
 
-  function onCheckAnswer(valid: boolean, explanation?: string) {
+  function onCheckAnswer(valid: boolean, explanation?: string | null) {
     if (valid) toast.success("Nice job!");
     else toast.error("Incorrect!", { description: explanation });
   }
@@ -49,23 +50,11 @@ export function Quiz({ debug }: { debug?: boolean }) {
             >
               <Orb className="" blur="xl" />
             </motion.div>
-            {checking ? (
-              <motion.div
-                key="checking"
-                {...blurTransition}
-                className="fixed bottom-8 cursor-default text-muted-foreground/50"
-              >
-                Checking your answer...
-              </motion.div>
-            ) : (
-              <motion.div
-                key="loading"
-                {...blurTransition}
-                className="fixed bottom-8 cursor-default text-muted-foreground/50"
-              >
-                Loading next question...
-              </motion.div>
-            )}
+            <SpinText className="fixed bottom-8 cursor-default text-muted-foreground/50">
+              {checking
+                ? "Checking your answer..."
+                : "Loading next question..."}
+            </SpinText>
           </>
         ) : (
           <motion.div
@@ -86,7 +75,7 @@ export function Quiz({ debug }: { debug?: boolean }) {
               transition: { duration: 0.3, delay: 0.3 },
             }}
             style={{ gridRow: 1, gridColumn: 1 }}
-            // className="w-[60rem]"
+          // className="w-[60rem]"
           >
             <QuizQuestion
               question={{ ...question, qNumber: questionNumber }}

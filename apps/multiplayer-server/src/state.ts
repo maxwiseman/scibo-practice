@@ -1,9 +1,13 @@
 import { ServerWebSocket } from "bun";
 import { z } from "zod";
 
-import type { gameStateSchema, userSchema } from "./schema/shared";
+import type { userSchema } from "./schema/shared";
 import { urlParams } from ".";
-import { serverCatchupSchema, serverMessageSchema } from "./schema/from-server";
+import {
+  serverCatchupSchema,
+  serverGameStateSchema,
+  serverMessageSchema,
+} from "./schema/from-server";
 
 export type channelData = {
   users: Record<
@@ -13,7 +17,7 @@ export type channelData = {
     }
   >;
   messages: z.infer<typeof serverMessageSchema>[];
-  gameState: z.infer<typeof gameStateSchema>;
+  gameState: z.infer<typeof serverGameStateSchema>;
 };
 
 export const storedData: Record<string, channelData> = {};
@@ -32,5 +36,5 @@ export function sendCatchup(ws: ServerWebSocket<urlParams>) {
     currentUser: currentChannelData.users[ws.data.userId]!,
   };
 
-  ws.send(JSON.stringify(msg));
+  ws.send(JSON.stringify(serverCatchupSchema.parse(msg)));
 }

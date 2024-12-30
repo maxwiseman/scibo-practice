@@ -29,6 +29,7 @@
   },
   "type": "module",
   "dependencies": {
+    "ai": "^4.0.22",
     "zod": "^3.23.8"
   }
 }

@@ -38,3 +38,11 @@ export function getSearchParams(url: string) {
 
   return paramsObj;
 }
+
+export function omitKey<T extends object, U extends string>(
+  key: U,
+  obj: T,
+): Omit<T, U> {
+  const { [key]: omitted, ...rest } = obj;
+  return rest;
+}

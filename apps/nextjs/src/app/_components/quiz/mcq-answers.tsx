@@ -6,6 +6,9 @@ import Latex from "react-latex-next";
 
 import "katex/dist/katex.min.css";
 
+import { z } from "zod";
+
+import { clientMcqAnswerSchema } from "@scibo/multiplayer-server/shared";
 import { cn } from "@scibo/ui";
 
 export function QuizMcqAnswers({
@@ -15,11 +18,12 @@ export function QuizMcqAnswers({
   answers,
   ...props
 }: HTMLProps<HTMLDivElement> & {
-  answers: {
-    answer: string;
-    letter: string;
-    correct: boolean;
-  }[];
+  // answers: {
+  //   answer: string;
+  //   letter: string;
+  //   correct: boolean;
+  // }[];
+  answers: z.infer<typeof clientMcqAnswerSchema>[];
   selection: string;
   onSelectChange: (val: string) => void;
 }) {

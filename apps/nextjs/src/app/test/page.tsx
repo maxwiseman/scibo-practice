@@ -1,22 +1,27 @@
 "use client";
 
-import { IconArrowUp } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { useSelector } from "@xstate/store/react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { Button } from "@scibo/ui/button";
-import { Input } from "@scibo/ui/input";
-
+import { blurTransition } from "../_components/blur-transition";
+import { Orb } from "../_components/quiz/orb";
 import { QuizQuestion } from "../_components/quiz/question";
+import { SpinText } from "../_components/spin-text";
 import { Lobby } from "../_components/stages/lobby";
 import websocketStore from "../_components/websocket/xstate";
 
-// import { exampleData } from "~/example-data";
-// import { Quiz } from "../_components/quiz/quiz";
-//
 export default function Page() {
   const state = useSelector(websocketStore, (state) => state.context.state);
+  const status = useSelector(websocketStore, (state) => state.context.status);
+  const users = useSelector(websocketStore, (state) => state.context.users);
+  const [answered, setAnswered] = useState<boolean[]>([]);
 
-  if (state.stage === "lobby")
+  // useEffect(() => {
+  //   setAnswered(false);
+  // }, [state.question?.qNumber]);
+
+  if (state.stage === "lobby" || status !== "connected")
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Lobby />
@@ -26,7 +31,51 @@ export default function Page() {
     return (
       <div className="flex h-full min-h-max w-full items-center justify-center p-4">
         <div className="max-w-[60rem]">
-          <QuizQuestion onSubmit={() => { }} question={state.question} />
+          {answered[state.question.qNumber] === true ? (
+            <>
+              <Orb />
+              <div className="fixed bottom-8 left-1/2 w-max -translate-x-1/2 cursor-default text-muted-foreground/50">
+                <AnimatePresence>
+                  <motion.div
+                    key={"waitingFor"}
+                    layout
+                    layoutId="waitingFor"
+                    className="inline"
+                  >
+                    Waiting for:{" "}
+                  </motion.div>
+                  {Object.keys(users).map((uId) =>
+                    Object.keys(state.answers ?? {}).includes(uId) ? (
+                      ""
+                    ) : (
+                      <motion.div
+                        className="inline"
+                        layout
+                        layoutId={users[uId]?.id}
+                        key={users[uId]?.id}
+                        {...blurTransition}
+                      >
+                        {users[uId]?.username + " "}
+                      </motion.div>
+                    ),
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <QuizQuestion
+              onSubmit={(val) => {
+                websocketStore.send({
+                  type: "sendMessage",
+                  message: { type: "answerQuestion", answer: val },
+                });
+                const answeredCopy = [...answered];
+                answeredCopy[state.question.qNumber] = true;
+                setAnswered(answeredCopy);
+              }}
+              question={state.question}
+            />
+          )}
         </div>
       </div>
     );

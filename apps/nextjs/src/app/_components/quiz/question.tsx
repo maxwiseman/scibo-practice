@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { IconArrowForward } from "@tabler/icons-react";
 import { isMobile } from "react-device-detect";
+import { z } from "zod";
 
+import { clientQuestionSchema } from "@scibo/multiplayer-server/shared";
 import { Button } from "@scibo/ui/button";
 
 import type { sciboQuestion } from "./types";
@@ -16,7 +18,8 @@ export function QuizQuestion({
   debug,
   onSubmit,
 }: {
-  question: sciboQuestion & { qNumber: number };
+  // question: sciboQuestion & { qNumber: number };
+  question: z.infer<typeof clientQuestionSchema> & { qNumber: number };
   debug?: boolean;
   onSubmit: (val: string) => void;
 }) {
@@ -46,7 +49,7 @@ export function QuizQuestion({
         type={question.type}
         prompt={question.question}
       />
-      {typeof question.answer === "string" ? (
+      {question.type === "shortAnswer" ? (
         <QuizShortAnswer answer={answer} onAnswerChange={setAnswer} />
       ) : (
         <QuizMcqAnswers

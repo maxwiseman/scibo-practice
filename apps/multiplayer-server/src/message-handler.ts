@@ -1,17 +1,23 @@
-import type { z } from "zod";
+import { openai } from "@ai-sdk/openai";
+import { generateObject } from "ai";
 import { ServerWebSocket } from "bun";
+import { z } from "zod";
 
-import type { protocolSchema } from "@scibo/multiplayer-server/from-client";
 import { eq, sql } from "@scibo/db";
 import { db } from "@scibo/db/client";
 import { Question } from "@scibo/db/schema";
+import {
+  clientGameStateSchema,
+  protocolSchema,
+} from "@scibo/multiplayer-server/from-client";
 
 import type { urlParams } from ".";
 import {
-  serverGameStateSchema,
+  serverAnswerSchema,
   serverMessageSchema,
+  serverUpdateGameStateSchema,
 } from "./schema/from-server";
-import { questionSchema } from "./schema/shared";
+import { clientQuestionSchema, serverQuestionSchema } from "./schema/shared";
 import { channelData } from "./state";
 import { publish } from "./utils";
 
@@ -43,32 +49,147 @@ export async function handleIncomingMessage(
 
     case "startGame": {
       if (currentChannelData.users[ws.data.userId]?.role !== "host") return;
-      const firstQuestion = (
-        await db
-          .select()
-          .from(Question)
-          .where(eq(Question.valid, true))
-          .orderBy(sql`RANDOM()`)
-          .limit(1)
-      )[0]! as typeof Question.$inferSelect;
 
-      console.log(firstQuestion);
+      publish(ws.data.room, await nextQuestion(currentChannelData));
+      break;
+    }
 
-      currentChannelData.gameState = {
-        stage: "question",
-        question: {
-          ...questionSchema.parse(firstQuestion),
-          asked: new Date().toISOString(),
-          questionTime: 10,
-          qNumber: 1,
-        },
-      };
+    case "answerQuestion": {
+      if (currentChannelData.gameState.stage !== "question") return;
+      function handleAllAnswers(
+        currentUserAnswer: z.infer<typeof serverAnswerSchema>,
+      ) {
+        if (currentChannelData.gameState.stage !== "question") return;
 
-      const outgoingMsg: z.infer<typeof serverGameStateSchema> = {
-        type: "updateGameState",
-        state: currentChannelData.gameState,
-      };
-      publish(ws.data.room, outgoingMsg);
+        currentChannelData.gameState.answers[ws.data.userId] =
+          currentUserAnswer;
+
+        Object.keys(currentChannelData.gameState.answers).forEach((uId) => {
+          const outgoingMsg: z.infer<typeof serverUpdateGameStateSchema> = {
+            type: "updateGameState",
+            state: currentChannelData.gameState,
+          };
+          currentChannelData.users[uId]?.ws.send(JSON.stringify(outgoingMsg));
+        });
+
+        if (
+          Object.values(currentChannelData.users).length ===
+          Object.values(currentChannelData.gameState.answers).length
+        ) {
+          console.log(
+            "Everyone has answered!",
+            currentChannelData.gameState.answers,
+          );
+          setTimeout(async () => {
+            publish(ws.data.room, await nextQuestion(currentChannelData));
+          }, 10000);
+          return;
+        }
+      }
+
+      const answerTime = new Date();
+      const question = currentChannelData.gameState.question;
+      const response = msg.answer;
+
+      if (question.type === "multipleChoice") {
+        const correctAnswer = question.answer.find((i) => i.correct);
+        if (msg.answer.toLowerCase() === correctAnswer?.letter.toLowerCase()) {
+          // send back true
+          handleAllAnswers({
+            correct: true,
+            time: answerTime,
+            answer: msg.answer,
+          });
+          return;
+        } else {
+          // send back false
+          handleAllAnswers({
+            correct: false,
+            time: answerTime,
+            answer: msg.answer,
+          });
+          return;
+        }
+      }
+
+      if (question.answer.toLowerCase().includes(msg.answer.toLowerCase())) {
+        // send back true
+        handleAllAnswers({
+          correct: true,
+          time: answerTime,
+          answer: msg.answer,
+        });
+        return;
+      }
+      const data = await generateObject({
+        model: openai("gpt-4o-mini", { structuredOutputs: true }),
+        prompt: `Your job is to determine whether or not a participant's answer to a question is correct or not. If they are wrong, give a SHORT, neutral explanation as if you are talking to the participant. THE ANSWER IS CORRECT EVEN IF THEY MADE A SPELLING OR GRAMMAR ERROR! The question information is as follows:
+                        Question: ${question.question}
+                        Correct Answer: ${question.answer}
+                        ---
+                        Participant's answer: ${response}`,
+        schema: z.object({
+          correct: z.boolean(),
+          spellingError: z
+            .boolean()
+            .describe(
+              "The response is valid even if there is a spelling error, but if there is one, mark this as true.",
+            ),
+          explanation: z.string().nullable(),
+        }),
+      });
+      handleAllAnswers({
+        correct: data.object.correct,
+        time: answerTime,
+        answer: msg.answer,
+      });
+      break;
     }
   }
+}
+
+async function nextQuestion(
+  currentChannelData: channelData,
+): Promise<z.infer<typeof serverUpdateGameStateSchema>> {
+  const nextQuestionData = (
+    await db
+      .select()
+      .from(Question)
+      .where(eq(Question.valid, true))
+      .orderBy(sql`RANDOM()`)
+      .limit(1)
+  )[0]! as typeof Question.$inferSelect;
+
+  const lastQuestionData =
+    currentChannelData.gameState.stage === "question"
+      ? currentChannelData.gameState.question
+      : undefined;
+
+  console.log(nextQuestionData);
+
+  currentChannelData.gameState = {
+    stage: "question",
+    question: {
+      ...serverQuestionSchema.parse(nextQuestionData),
+      asked: new Date(),
+      questionTime: 10,
+      qNumber: 1,
+    },
+    answers: {},
+  };
+
+  const outgoingMsg: z.infer<typeof serverUpdateGameStateSchema> = {
+    type: "updateGameState",
+    state: {
+      stage: "question",
+      question: {
+        ...clientQuestionSchema.parse(nextQuestionData),
+        asked: new Date(),
+        questionTime: 10,
+        qNumber: lastQuestionData ? lastQuestionData.qNumber + 1 : 1,
+      },
+    },
+  };
+
+  return outgoingMsg;
 }

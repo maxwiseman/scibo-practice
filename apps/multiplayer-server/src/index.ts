@@ -58,11 +58,16 @@ export const server = Bun.serve<urlParams>({
         return;
       }
 
-      const userData: z.infer<typeof userSchema> = {
+      const userDataParse = userSchema.safeParse({
         id: ws.data.userId,
         username: ws.data.username,
         role: newRoom ? "host" : "player",
-      };
+      });
+      if (!userDataParse.success) {
+        ws.close(3000, "You must provide a room, userId, and username");
+        return;
+      }
+      const userData = userDataParse.data;
 
       publish<z.infer<typeof serverUserJoinSchema>>(ws.data.room, {
         type: "userJoin",

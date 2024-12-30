@@ -2,12 +2,12 @@
 import type { z } from "zod";
 import { createStore } from "@xstate/store";
 
-import type { protocolSchema as clientSchema } from "@scibo/multiplayer-server/from-client";
-import type { serverMessageSchema } from "@scibo/multiplayer-server/from-server";
 import type {
-  gameStateSchema,
-  userSchema,
-} from "@scibo/multiplayer-server/shared";
+  clientGameStateSchema,
+  protocolSchema as clientSchema,
+} from "@scibo/multiplayer-server/from-client";
+import type { serverMessageSchema } from "@scibo/multiplayer-server/from-server";
+import type { userSchema } from "@scibo/multiplayer-server/shared";
 import { protocolSchema as serverSchema } from "@scibo/multiplayer-server/from-server";
 import { toast } from "@scibo/ui/toast";
 
@@ -20,7 +20,7 @@ export interface websocketContext {
   messageHistory: z.infer<typeof serverMessageSchema>[];
   error: Error | null;
   status: "connecting" | "connected" | "disconnected";
-  state: z.infer<typeof gameStateSchema>;
+  state: z.infer<typeof clientGameStateSchema>;
   socket: WebSocket | null;
 }
 
