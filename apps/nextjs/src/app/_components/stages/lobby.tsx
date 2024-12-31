@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   IconCrown,
   IconLogout,
@@ -30,6 +31,7 @@ export function Lobby() {
     websocketStore,
     (state) => state.context.currentUser,
   );
+  const [starting, setStarting] = useState(false);
 
   if (status !== "connected" || self === null)
     return (
@@ -112,8 +114,10 @@ export function Lobby() {
             {self.role === "host" && (
               <Button
                 disabled={Object.keys(users).length <= 1}
+                loading={starting}
                 className="ml-1 w-max"
                 onClick={() => {
+                  setStarting(true);
                   websocketStore.send({
                     type: "sendMessage",
                     message: { type: "startGame" },

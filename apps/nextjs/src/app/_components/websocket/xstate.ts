@@ -79,8 +79,13 @@ const websocketStore = createStore({
         console.log("Connected!");
         websocketStore.send({
           type: "updateStatus",
-          socket: ws,
+          currentUser: null,
+          users: {},
+          messageHistory: [],
+          error: null,
           status: "connected",
+          state: { stage: "lobby" },
+          socket: ws,
         });
       };
 

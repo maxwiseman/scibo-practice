@@ -94,6 +94,15 @@ export async function handleIncomingMessage(
       const question = currentChannelData.gameState.question;
       const response = msg.answer;
 
+      if (msg.answer === "") {
+        handleAllAnswers({
+          correct: "incorrect",
+          time: answerTime,
+          answer: msg.answer,
+        });
+        return;
+      }
+
       if (question.type === "multipleChoice") {
         const correctAnswer = question.answer.find((i) => i.correct);
         if (msg.answer.toLowerCase() === correctAnswer?.letter.toLowerCase()) {
@@ -115,7 +124,7 @@ export async function handleIncomingMessage(
         }
       }
 
-      if (question.answer.toLowerCase().includes(msg.answer.toLowerCase())) {
+      if (msg.answer.toLowerCase().includes(question.answer.toLowerCase())) {
         // send back true
         handleAllAnswers({
           correct: "correct",
