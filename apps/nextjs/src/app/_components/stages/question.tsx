@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { IconBan, IconCheck, IconStopwatch, IconX } from "@tabler/icons-react";
 import { useSelector } from "@xstate/store/react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 
@@ -29,6 +29,15 @@ export function Question() {
         )}
       >
         <AnimatePresence mode="popLayout">
+          {answered[state.question.qNumber] !== true && (
+            <motion.div
+              key="timer"
+              className="fixed top-10"
+              {...blurTransition}
+            >
+              <Timer />
+            </motion.div>
+          )}
           {Object.keys(users).length ===
             Object.keys(state.answers ?? {}).length && (
               <motion.div
@@ -85,6 +94,57 @@ export function Question() {
   );
 }
 
+export function Timer() {
+  const state = useSelector(websocketStore, (state) => state.context.state);
+  const [time, setTime] = useState(0);
+  useEffect(() => {
+    if (state.stage !== "question") return;
+    let stop = false;
+
+    function updateTime() {
+      if (state.stage !== "question") return;
+      const time =
+        (new Date().getTime() - state.question.asked.getTime()) / 1000;
+      setTime(time);
+      console.log(parseInt(time.toString().split(".")[1] ?? "0"));
+      if (!stop)
+        setTimeout(
+          updateTime,
+          100 - parseInt(time.toString().split(".")[1] ?? "0"),
+        );
+    }
+    // const interval = setTimeout(() => {
+    //   setTime(state.question.asked.getTime() - new Date().getTime());
+    updateTime();
+    // }, 1000);
+
+    return () => {
+      stop = true;
+      // clearInterval(interval);
+    };
+  }, [state]);
+
+  if (state.stage !== "question") return null;
+  const remainingTime = state.question.questionTime - Math.round(time);
+
+  const minutes = String(Math.floor(Math.round(remainingTime) / 60)).padStart(
+    2,
+    "0",
+  );
+  const seconds = String(Math.round(Math.abs(remainingTime)) % 60).padStart(
+    2,
+    "0",
+  );
+
+  return (
+    <div className="flex items-center gap-1 text-lg text-muted-foreground">
+      <IconStopwatch className="h-5 w-5" />
+      {/* {`${minutes}:${seconds}`} */}
+      {`${remainingTime}s`}
+    </div>
+  );
+}
+
 export function Leaderboard() {
   const state = useSelector(websocketStore, (state) => state.context.state);
   const users = useSelector(websocketStore, (state) => state.context.users);
@@ -108,9 +168,13 @@ export function Leaderboard() {
         icon = <IconX className="h-6 w-6" />;
         iconNumber = 2;
         break;
+      case "skipped":
+        icon = <IconBan className="h-6 w-6" />;
+        iconNumber = 3;
+        break;
       default:
         icon = <Spinner className="h-6 w-6" />;
-        iconNumber = 3;
+        iconNumber = 4;
         break;
     }
 

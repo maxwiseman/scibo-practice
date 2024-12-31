@@ -53,8 +53,8 @@ export const clientMcqQuestionSchema = z.object({
   question: z.string(),
   pronunciations: z.array(z.string()),
   answer: z.array(clientMcqAnswerSchema),
-  htmlUrl: z.string(),
-  explanation: z.string(),
+  // htmlUrl: z.string(),
+  // explanation: z.string(),
   valid: z.boolean(),
 });
 export const clientSaqQuestionSchema = z.object({
@@ -65,8 +65,8 @@ export const clientSaqQuestionSchema = z.object({
   question: z.string(),
   pronunciations: z.array(z.string()),
   // answer: z.coerce.string().optional(),
-  htmlUrl: z.string(),
-  explanation: z.string(),
+  // htmlUrl: z.string(),
+  // explanation: z.string(),
   valid: z.boolean(),
 });
 export const serverQuestionSchema = z.discriminatedUnion("type", [

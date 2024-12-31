@@ -6,7 +6,7 @@ import { lobbyStateSchema, serverQuestionSchema, userSchema } from "./shared";
 export const serverAnswerSchema = z.object({
   time: z.date(),
   answer: z.string(),
-  correct: z.enum(["incorrect", "correct", "grading"]),
+  correct: z.enum(["incorrect", "correct", "skipped", "grading"]),
 });
 export const serverQuestionStateSchema = z.object({
   stage: z.literal("question"),

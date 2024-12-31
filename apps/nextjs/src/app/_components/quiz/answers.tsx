@@ -37,7 +37,7 @@ export function QuizAnswers({
   }, [question]);
 
   return (
-    <>
+    <div className="flex w-full flex-col items-center gap-12">
       {question.type === "shortAnswer" ? (
         <QuizShortAnswer answer={answer} onAnswerChange={setAnswer} />
       ) : (
@@ -73,6 +73,6 @@ export function QuizAnswers({
           )}
         </>
       )}
-    </>
+    </div>
   );
 }

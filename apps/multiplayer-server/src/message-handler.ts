@@ -96,7 +96,7 @@ export async function handleIncomingMessage(
 
       if (msg.answer === "") {
         handleAllAnswers({
-          correct: "incorrect",
+          correct: "skipped",
           time: answerTime,
           answer: msg.answer,
         });
@@ -189,7 +189,7 @@ async function nextQuestion(
     question: {
       ...serverQuestionSchema.parse(nextQuestionData),
       asked: new Date(),
-      questionTime: 10,
+      questionTime: 30,
       qNumber: lastQuestionData ? lastQuestionData.qNumber + 1 : 1,
     },
     answers: {},
@@ -202,7 +202,7 @@ async function nextQuestion(
       question: {
         ...clientQuestionSchema.parse(nextQuestionData),
         asked: new Date(),
-        questionTime: 10,
+        questionTime: 30,
         qNumber: lastQuestionData ? lastQuestionData.qNumber + 1 : 1,
       },
     },

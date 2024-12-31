@@ -19,7 +19,7 @@ export const clientQuestionStateSchema = z.object({
       z.object({
         time: z.coerce.date(),
         answer: z.string(),
-        correct: z.enum(["correct", "incorrect", "grading"]),
+        correct: z.enum(["correct", "incorrect", "skipped", "grading"]),
       }),
     )
     .optional(),
