@@ -94,26 +94,34 @@ export const gameStages = z.enum(["lobby", "question"]);
 export const lobbyStateSchema = z.object({ stage: z.literal("lobby") });
 
 export const gameSettingsSchema = z.object({
-  timing: z.object({
-    enabled: z.boolean().default(true),
-    time: z.number().default(7),
-    bonusTime: z.number().default(22),
-    overtime: z.boolean().default(false),
-    maxOvertime: z.number().default(10),
-  }),
-  scoring: z.object({
-    correct: z.number().default(4),
-    bonus: z.number().default(10),
-    overtimeDecrement: z.number().default(0.25),
-  }),
-  general: z.object({
-    maxPlayers: z.number().default(8),
-  }),
-  end: z.discriminatedUnion("type", [
-    z.object({ type: z.literal("time"), maxTime: z.number().default(10) }),
-    z.object({
-      type: z.literal("questions"),
-      maxQuestions: z.number().default(20),
-    }),
-  ]),
+  timing: z
+    .object({
+      enabled: z.boolean().default(true),
+      time: z.number().default(7),
+      bonusTime: z.number().default(22),
+      overtime: z.boolean().default(false),
+      maxOvertime: z.number().default(10),
+    })
+    .default({}),
+  scoring: z
+    .object({
+      correct: z.number().default(4),
+      bonus: z.number().default(10),
+      overtimeDecrement: z.number().default(0.25),
+    })
+    .default({}),
+  general: z
+    .object({
+      maxPlayers: z.number().default(8),
+    })
+    .default({}),
+  end: z
+    .discriminatedUnion("type", [
+      z.object({ type: z.literal("time"), maxTime: z.number().default(10) }),
+      z.object({
+        type: z.literal("questions"),
+        maxQuestions: z.number().default(20),
+      }),
+    ])
+    .default({ type: "questions" }),
 });

@@ -206,7 +206,9 @@ async function nextQuestion(
     question: {
       ...serverQuestionSchema.parse(nextQuestionData),
       asked: new Date(),
-      questionTime: 30,
+      questionTime: nextQuestionData.bonus
+        ? currentChannelData.gameSettings.timing.bonusTime
+        : currentChannelData.gameSettings.timing.time,
       qNumber: lastQuestionData ? lastQuestionData.qNumber + 1 : 1,
     },
     answers: {},
@@ -219,7 +221,9 @@ async function nextQuestion(
       question: {
         ...clientQuestionSchema.parse(nextQuestionData),
         asked: new Date(),
-        questionTime: 30,
+        questionTime: nextQuestionData.bonus
+          ? currentChannelData.gameSettings.timing.bonusTime
+          : currentChannelData.gameSettings.timing.time,
         qNumber: lastQuestionData ? lastQuestionData.qNumber + 1 : 1,
       },
     },

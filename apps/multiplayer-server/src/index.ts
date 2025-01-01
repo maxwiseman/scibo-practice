@@ -4,7 +4,7 @@ import { z } from "zod";
 import { handleIncomingMessage } from "./message-handler";
 import { protocolSchema } from "./schema/from-client";
 import { serverUserJoinSchema } from "./schema/from-server";
-import { userSchema } from "./schema/shared";
+import { gameSettingsSchema, userSchema } from "./schema/shared";
 import { sendCatchup, storedData } from "./state";
 import { getSearchParams, publish } from "./utils";
 
@@ -47,6 +47,7 @@ export const server = Bun.serve<urlParams>({
         storedData[ws.data.room] = {
           users: {},
           history: [],
+          gameSettings: gameSettingsSchema.parse({}),
           gameState: { stage: "lobby" },
         };
         newRoom = true;

@@ -164,10 +164,10 @@ export function Leaderboard() {
       return userData2.score - userData.score;
     })
     .map(([uId, userData]) => {
-      const answer = state.answers?.[uId]?.correct;
+      const answer = state.answers?.[uId];
       let icon: React.ReactNode = <></>;
       let iconNumber = 0;
-      switch (answer) {
+      switch (answer?.correct) {
         case "correct":
           icon = <IconCheck className="h-6 w-6" />;
           iconNumber = 1;
@@ -198,21 +198,30 @@ export function Leaderboard() {
             { "text-muted-foreground": uId !== self?.id },
           )}
         >
-          <AnimatePresence mode="popLayout">
-            <motion.div key={`${uId}-icon${iconNumber}`} {...blurTransition}>
-              {icon}
-            </motion.div>{" "}
-            <motion.div key={`${uId}-uname`}>{userData.username}</motion.div>
-            <motion.div
-              {...blurTransition}
-              key={`${uId}-score${userData.score}`}
-            >
-              {userData.score}
-            </motion.div>
-            {/* <div key={`${uId}-score`}> */}
-            {/*   <SpinText>{userData.score}</SpinText> */}
-            {/* </div> */}
-          </AnimatePresence>
+          <LayoutGroup>
+            <AnimatePresence mode="popLayout">
+              <motion.div key={`${uId}-icon${iconNumber}`} {...blurTransition}>
+                {icon}
+              </motion.div>{" "}
+              <motion.div key={`${uId}-uname`}>{userData.username}</motion.div>
+              <motion.div
+                {...blurTransition}
+                key={`${uId}-answer${answer?.answer}`}
+                className="line-clamp-1 w-full shrink grow text-sm text-muted-foreground"
+              >
+                {answer?.answer}
+              </motion.div>
+              <motion.div
+                {...blurTransition}
+                key={`${uId}-score${userData.score}`}
+              >
+                {userData.score}
+              </motion.div>
+              {/* <div key={`${uId}-score`}> */}
+              {/*   <SpinText>{userData.score}</SpinText> */}
+              {/* </div> */}
+            </AnimatePresence>
+          </LayoutGroup>
         </motion.div>
       );
     });

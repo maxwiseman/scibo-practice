@@ -1,7 +1,7 @@
 import { ServerWebSocket } from "bun";
 import { z } from "zod";
 
-import type { userSchema } from "./schema/shared";
+import type { gameSettingsSchema, userSchema } from "./schema/shared";
 import { urlParams } from ".";
 import {
   serverAnswerSchema,
@@ -26,6 +26,7 @@ export type channelData = {
     }
   >;
   gameState: z.infer<typeof serverGameStateSchema>;
+  gameSettings: z.infer<typeof gameSettingsSchema>;
   history: z.infer<typeof historySchema>;
 };
 
