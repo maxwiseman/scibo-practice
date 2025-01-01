@@ -11,6 +11,7 @@ import { Spinner } from "@scibo/ui/spinner";
 import { blurTransition } from "../blur-transition";
 import { QuizAnswers } from "../quiz/answers";
 import { QuizPrompt } from "../quiz/prompt";
+import { SpinText } from "../spin-text";
 import websocketStore from "../websocket/xstate";
 
 export function Question() {
@@ -38,8 +39,9 @@ export function Question() {
               <Timer />
             </motion.div>
           )}
-          {Object.keys(users).length ===
-            Object.keys(state.answers ?? {}).length && (
+          {Object.values(users).filter(
+            (i) => i.role === "host" || i.role === "player",
+          ).length === Object.keys(state.answers ?? {}).length && (
               <motion.div
                 initial={{ scaleX: "0%" }}
                 exit={{ translateY: "-2000%" }}
@@ -155,43 +157,68 @@ export function Leaderboard() {
 
   if (state.stage !== "question") return null;
 
-  return Object.keys(users).map((uId) => {
-    const answer = state.answers?.[uId]?.correct;
-    let icon: React.ReactNode = <></>;
-    let iconNumber = 0;
-    switch (answer) {
-      case "correct":
-        icon = <IconCheck className="h-6 w-6" />;
-        iconNumber = 1;
-        break;
-      case "incorrect":
-        icon = <IconX className="h-6 w-6" />;
-        iconNumber = 2;
-        break;
-      case "skipped":
-        icon = <IconBan className="h-6 w-6" />;
-        iconNumber = 3;
-        break;
-      default:
-        icon = <Spinner className="h-6 w-6" />;
-        iconNumber = 4;
-        break;
-    }
+  const scoreCards = Object.entries(users)
+    .sort(([uId, userData], [uId2, userData2]) => {
+      if (userData.role !== "host" && userData.role !== "player") return 0;
+      if (userData2.role !== "host" && userData2.role !== "player") return 0;
+      return userData2.score - userData.score;
+    })
+    .map(([uId, userData]) => {
+      const answer = state.answers?.[uId]?.correct;
+      let icon: React.ReactNode = <></>;
+      let iconNumber = 0;
+      switch (answer) {
+        case "correct":
+          icon = <IconCheck className="h-6 w-6" />;
+          iconNumber = 1;
+          break;
+        case "incorrect":
+          icon = <IconX className="h-6 w-6" />;
+          iconNumber = 2;
+          break;
+        case "skipped":
+          icon = <IconBan className="h-6 w-6" />;
+          iconNumber = 3;
+          break;
+        default:
+          icon = <Spinner className="h-6 w-6" />;
+          iconNumber = 4;
+          break;
+      }
 
-    return (
-      <div
-        className={cn(
-          "flex w-full items-center gap-4 rounded-md bg-muted px-4 py-2 text-2xl",
-          { "text-muted-foreground": uId !== self?.id },
-        )}
-      >
-        <AnimatePresence mode="popLayout">
-          <motion.div key={iconNumber} {...blurTransition}>
-            {icon}
-          </motion.div>{" "}
-          <div>{users[uId]?.username}</div>
-        </AnimatePresence>
-      </div>
-    );
-  });
+      if (userData.role !== "host" && userData.role !== "player") return null;
+
+      return (
+        <motion.div
+          layout="position"
+          layoutId={`scorecard-${uId}`}
+          key={`scorecard-${uId}`}
+          className={cn(
+            "flex w-full items-center gap-4 rounded-md bg-muted px-4 py-2 text-2xl",
+            { "text-muted-foreground": uId !== self?.id },
+          )}
+        >
+          <AnimatePresence mode="popLayout">
+            <motion.div key={`${uId}-icon${iconNumber}`} {...blurTransition}>
+              {icon}
+            </motion.div>{" "}
+            <motion.div key={`${uId}-uname`}>{userData.username}</motion.div>
+            <motion.div
+              {...blurTransition}
+              key={`${uId}-score${userData.score}`}
+            >
+              {userData.score}
+            </motion.div>
+            {/* <div key={`${uId}-score`}> */}
+            {/*   <SpinText>{userData.score}</SpinText> */}
+            {/* </div> */}
+          </AnimatePresence>
+        </motion.div>
+      );
+    });
+  return (
+    <LayoutGroup>
+      <AnimatePresence mode="popLayout">{scoreCards}</AnimatePresence>
+    </LayoutGroup>
+  );
 }

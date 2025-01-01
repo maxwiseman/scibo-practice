@@ -4,10 +4,19 @@ import { z } from "zod";
 import type { userSchema } from "./schema/shared";
 import { urlParams } from ".";
 import {
+  serverAnswerSchema,
   serverCatchupSchema,
   serverGameStateSchema,
   serverMessageSchema,
 } from "./schema/from-server";
+import { serverQuestionSchema } from "./schema/shared";
+
+export const historySchema = z.array(
+  z.object({
+    question: serverQuestionSchema,
+    answers: serverAnswerSchema,
+  }),
+);
 
 export type channelData = {
   users: Record<
@@ -16,8 +25,8 @@ export type channelData = {
       ws: ServerWebSocket<urlParams>;
     }
   >;
-  messages: z.infer<typeof serverMessageSchema>[];
   gameState: z.infer<typeof serverGameStateSchema>;
+  history: z.infer<typeof historySchema>;
 };
 
 export const storedData: Record<string, channelData> = {};
@@ -32,7 +41,6 @@ export function sendCatchup(ws: ServerWebSocket<urlParams>) {
   const msg: z.infer<typeof serverCatchupSchema> = {
     type: "catchup",
     users: currentChannelData.users,
-    messages: currentChannelData.messages,
     currentUser: currentChannelData.users[ws.data.userId]!,
   };
 

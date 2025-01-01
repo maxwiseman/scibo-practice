@@ -28,7 +28,6 @@ const websocketStore = createStore({
   context: {
     currentUser: null,
     users: {},
-    messageHistory: [],
     error: null,
     status: "disconnected",
     state: { stage: "lobby" },
@@ -81,7 +80,6 @@ const websocketStore = createStore({
           type: "updateStatus",
           currentUser: null,
           users: {},
-          messageHistory: [],
           error: null,
           status: "connected",
           state: { stage: "lobby" },
@@ -94,7 +92,6 @@ const websocketStore = createStore({
           type: "updateStatus",
           socket: null,
           status: "disconnected",
-          messageHistory: [],
           users: {},
           error: event.reason ? new Error(event.reason) : null,
         });

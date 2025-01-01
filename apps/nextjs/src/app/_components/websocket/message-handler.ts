@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type { protocolSchema } from "@scibo/multiplayer-server/from-server";
+import { toast } from "@scibo/ui/toast";
 
 import type { websocketContext } from "./xstate";
 
@@ -9,13 +10,9 @@ export function handleIncomingMessage(
   msg: z.infer<typeof protocolSchema>,
 ): Partial<websocketContext> {
   switch (msg.type) {
-    case "message": {
-      return {
-        messageHistory: [...ctx.messageHistory, msg],
-      };
-    }
-
     case "userJoin": {
+      if (ctx.state.stage !== "lobby" && msg.user.role !== "spectator")
+        toast.info(`${msg.user.username} has joined!`);
       return {
         users: { ...ctx.users, [msg.user.id]: msg.user },
       };
@@ -23,6 +20,8 @@ export function handleIncomingMessage(
 
     case "userLeave": {
       const { [msg.id]: omitted, ...rest } = ctx.users;
+      if (ctx.state.stage !== "lobby")
+        toast.info(`${ctx.users[msg.id]?.username} has left!`);
       return {
         users: rest,
       };
@@ -31,16 +30,16 @@ export function handleIncomingMessage(
     case "catchup": {
       return {
         users: msg.users,
-        messageHistory: msg.messages,
         currentUser: msg.currentUser,
       };
     }
 
-    case "updateUser": {
+    case "updateUsers": {
       return {
-        currentUser:
-          msg.user.id === ctx.currentUser?.id ? msg.user : ctx.currentUser,
-        users: { ...ctx.users, [msg.user.id]: msg.user },
+        currentUser: Object.entries(msg.users).find(
+          ([uId]) => uId === ctx.currentUser?.id,
+        )?.[1],
+        users: msg.users,
       };
     }
 

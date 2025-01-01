@@ -15,6 +15,7 @@ import type { urlParams } from ".";
 import {
   serverAnswerSchema,
   serverMessageSchema,
+  protocolSchema as serverProtocolSchema,
   serverUpdateGameStateSchema,
 } from "./schema/from-server";
 import { clientQuestionSchema, serverQuestionSchema } from "./schema/shared";
@@ -27,17 +28,6 @@ export async function handleIncomingMessage(
   msg: z.infer<typeof protocolSchema>,
 ) {
   switch (msg.type) {
-    case "message": {
-      const outgoingMsg: z.infer<typeof serverMessageSchema> = {
-        type: "message",
-        user: currentChannelData.users[ws.data.userId]!,
-        content: msg.content,
-      };
-      publish(ws.data.room, outgoingMsg);
-      currentChannelData.messages.push(outgoingMsg);
-      break;
-    }
-
     case "kickUser": {
       if (currentChannelData.users[ws.data.userId]?.role !== "host") return;
       const user = currentChannelData.users[msg.userId];
@@ -83,6 +73,33 @@ export async function handleIncomingMessage(
             "Everyone has answered!",
             currentChannelData.gameState.answers,
           );
+          currentChannelData.users = Object.fromEntries(
+            Object.entries(currentChannelData.users).map(([uId, userData]) => {
+              if (
+                currentChannelData.gameState.stage !== "question" ||
+                (userData.role !== "host" && userData.role !== "player")
+              )
+                return [uId, userData];
+              const userAnswer = currentChannelData.gameState.answers[uId];
+              return [
+                uId,
+                {
+                  ...userData,
+                  score:
+                    userAnswer?.correct === "correct"
+                      ? userData.score + 1
+                      : userData.score,
+                },
+              ];
+            }),
+          );
+          Object.keys(currentChannelData.gameState.answers).forEach((uId) => {
+            const outgoingMsg: z.infer<typeof serverProtocolSchema> = {
+              type: "updateUsers",
+              users: currentChannelData.users,
+            };
+            currentChannelData.users[uId]?.ws.send(JSON.stringify(outgoingMsg));
+          });
           setTimeout(async () => {
             publish(ws.data.room, await nextQuestion(currentChannelData));
           }, 10000);

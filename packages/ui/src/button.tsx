@@ -40,7 +40,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
   icon?: React.ReactElement<HTMLProps<HTMLDivElement>>;
@@ -48,7 +48,7 @@ export interface ButtonProps
 
 export interface LinkButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
   icon?: React.ReactElement<HTMLProps<HTMLDivElement>>;
@@ -60,14 +60,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const StyledIcon = props.icon
       ? React.cloneElement(props.icon, {
-          className: cn(
-            "h-4 overflow-hidden transition-[width]",
-            !props.loading ? "mr-2 w-4" : "mr-0 w-0",
-            { "mr-0": size === "icon" },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- this will either be a string or it wont be defined
-            props.icon.props?.className,
-          ),
-        })
+        className: cn(
+          "h-4 overflow-hidden transition-[width]",
+          !props.loading ? "mr-2 w-4" : "mr-0 w-0",
+          { "mr-0": size === "icon" },
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- this will either be a string or it wont be defined
+          props.icon.props?.className,
+        ),
+      })
       : null;
     const Comp = asChild ? Slot : "button";
     return (
@@ -75,7 +75,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
-        disabled={props.disabled ?? props.loading}
+        disabled={props.disabled || props.loading}
       >
         <div
           className={cn(
@@ -112,13 +112,13 @@ const LinkButton = React.forwardRef<HTMLButtonElement, LinkButtonProps>(
     const Comp = asChild ? Slot : "button";
     const StyledIcon = props.icon
       ? React.cloneElement(props.icon, {
-          className: cn(
-            "mr-2 h-4 w-4",
-            { "mr-0": size === "icon" },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- this will either be a string or it wont be defined
-            props.icon.props?.className,
-          ),
-        })
+        className: cn(
+          "mr-2 h-4 w-4",
+          { "mr-0": size === "icon" },
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- this will either be a string or it wont be defined
+          props.icon.props?.className,
+        ),
+      })
       : null;
     return (
       <Link className="contents" href={href} tabIndex={-1} target={target}>

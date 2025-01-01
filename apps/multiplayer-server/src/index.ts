@@ -45,8 +45,8 @@ export const server = Bun.serve<urlParams>({
       let newRoom = false;
       if (!storedData[ws.data.room]) {
         storedData[ws.data.room] = {
-          messages: [],
           users: {},
+          history: [],
           gameState: { stage: "lobby" },
         };
         newRoom = true;
@@ -98,8 +98,8 @@ export const server = Bun.serve<urlParams>({
         const firstUserId = Object.keys(currentChannelData.users)[0]!;
         currentChannelData.users[firstUserId]!.role = "host";
         publish(ws.data.room, {
-          type: "updateUser",
-          user: currentChannelData.users[firstUserId]!,
+          type: "updateUsers",
+          users: currentChannelData.users,
         });
       }
 

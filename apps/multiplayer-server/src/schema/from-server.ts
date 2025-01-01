@@ -42,12 +42,11 @@ export const serverMessageSchema = z.object({
 export const serverCatchupSchema = z.object({
   type: z.literal("catchup"),
   users: z.record(z.string(), userSchema),
-  messages: z.array(serverMessageSchema),
   currentUser: userSchema,
 });
 export const serverUpdateUserSchema = z.object({
-  type: z.literal("updateUser"),
-  user: userSchema,
+  type: z.literal("updateUsers"),
+  users: z.record(z.string(), userSchema),
 });
 export const serverUpdateGameStateSchema = z.object({
   type: z.literal("updateGameState"),
@@ -57,7 +56,6 @@ export const serverUpdateGameStateSchema = z.object({
 export const protocolSchema = z.discriminatedUnion("type", [
   serverUserJoinSchema,
   serverUserLeaveSchema,
-  serverMessageSchema,
   serverCatchupSchema,
   serverUpdateUserSchema,
   serverUpdateGameStateSchema,

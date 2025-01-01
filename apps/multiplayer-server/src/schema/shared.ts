@@ -1,12 +1,24 @@
 import { z } from "zod";
 
-import { question, topicEnum, typeEnum } from "@scibo/db/types";
+import { topicEnum } from "@scibo/db/types";
 
-export const userSchema = z.object({
+export const userPlayerSchema = z.object({
   id: z.string(),
   username: z.string(),
-  role: z.enum(["player", "spectator", "host"]).default("player"),
+  role: z.enum(["player", "host"]).default("player"),
+  score: z.number().default(0),
 });
+
+export const userSpectatorSchema = z.object({
+  id: z.string(),
+  username: z.string().optional(),
+  role: z.literal("spectator"),
+});
+
+export const userSchema = z.discriminatedUnion("role", [
+  userPlayerSchema,
+  userSpectatorSchema,
+]);
 
 export const serverMcqAnswerSchema = z.object({
   answer: z.coerce.string(),
