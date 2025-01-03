@@ -9,6 +9,7 @@ import type {
 import type { serverMessageSchema } from "@scibo/multiplayer-server/from-server";
 import type { userSchema } from "@scibo/multiplayer-server/shared";
 import { protocolSchema as serverSchema } from "@scibo/multiplayer-server/from-server";
+import { gameSettingsSchema } from "@scibo/multiplayer-server/shared";
 import { toast } from "@scibo/ui/toast";
 
 import { env } from "~/env";
@@ -21,6 +22,7 @@ export interface websocketContext {
   error: Error | null;
   status: "connecting" | "connected" | "disconnected";
   state: z.infer<typeof clientGameStateSchema>;
+  settings: z.infer<typeof gameSettingsSchema>;
   socket: WebSocket | null;
 }
 
@@ -31,6 +33,7 @@ const websocketStore = createStore({
     error: null,
     status: "disconnected",
     state: { stage: "lobby" },
+    settings: gameSettingsSchema.parse({}),
     socket: null,
   } as websocketContext,
   on: {

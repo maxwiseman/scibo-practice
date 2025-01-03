@@ -203,7 +203,9 @@ export function Leaderboard() {
               <motion.div key={`${uId}-icon${iconNumber}`} {...blurTransition}>
                 {icon}
               </motion.div>{" "}
-              <motion.div key={`${uId}-uname`}>{userData.username}</motion.div>
+              <motion.div key={`${uId}-uname`} className="w-max shrink-0">
+                {userData.username}
+              </motion.div>
               <motion.div
                 {...blurTransition}
                 key={`${uId}-answer${answer?.answer}`}

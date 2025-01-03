@@ -31,6 +31,8 @@ export function handleIncomingMessage(
       return {
         users: msg.users,
         currentUser: msg.currentUser,
+        state: msg.gameState,
+        settings: msg.gameSettings,
       };
     }
 
@@ -46,6 +48,12 @@ export function handleIncomingMessage(
     case "updateGameState": {
       return {
         state: msg.state,
+      };
+    }
+
+    case "updateGameSettings": {
+      return {
+        settings: msg.settings,
       };
     }
 

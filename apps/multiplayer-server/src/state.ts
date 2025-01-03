@@ -3,11 +3,11 @@ import { z } from "zod";
 
 import type { gameSettingsSchema, userSchema } from "./schema/shared";
 import { urlParams } from ".";
+import { clientGameStateSchema } from "./schema/from-client";
 import {
   serverAnswerSchema,
   serverCatchupSchema,
   serverGameStateSchema,
-  serverMessageSchema,
 } from "./schema/from-server";
 import { serverQuestionSchema } from "./schema/shared";
 
@@ -43,6 +43,8 @@ export function sendCatchup(ws: ServerWebSocket<urlParams>) {
     type: "catchup",
     users: currentChannelData.users,
     currentUser: currentChannelData.users[ws.data.userId]!,
+    gameState: clientGameStateSchema.parse(currentChannelData.gameState),
+    gameSettings: currentChannelData.gameSettings,
   };
 
   ws.send(JSON.stringify(serverCatchupSchema.parse(msg)));

@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 import { clientGameStateSchema } from "./from-client";
-import { lobbyStateSchema, serverQuestionSchema, userSchema } from "./shared";
+import {
+  gameSettingsSchema,
+  lobbyStateSchema,
+  serverQuestionSchema,
+  userSchema,
+} from "./shared";
 
 export const serverAnswerSchema = z.object({
   time: z.date(),
@@ -43,6 +48,8 @@ export const serverCatchupSchema = z.object({
   type: z.literal("catchup"),
   users: z.record(z.string(), userSchema),
   currentUser: userSchema,
+  gameState: clientGameStateSchema,
+  gameSettings: gameSettingsSchema,
 });
 export const serverUpdateUserSchema = z.object({
   type: z.literal("updateUsers"),
@@ -52,6 +59,10 @@ export const serverUpdateGameStateSchema = z.object({
   type: z.literal("updateGameState"),
   state: clientGameStateSchema,
 });
+export const serverUpdateGameSettingsSchema = z.object({
+  type: z.literal("updateGameSettings"),
+  settings: gameSettingsSchema,
+});
 
 export const protocolSchema = z.discriminatedUnion("type", [
   serverUserJoinSchema,
@@ -59,4 +70,5 @@ export const protocolSchema = z.discriminatedUnion("type", [
   serverCatchupSchema,
   serverUpdateUserSchema,
   serverUpdateGameStateSchema,
+  serverUpdateGameSettingsSchema,
 ]);

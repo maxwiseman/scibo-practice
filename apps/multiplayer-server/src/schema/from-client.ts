@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { clientQuestionSchema, lobbyStateSchema } from "./shared";
+import {
+  clientQuestionSchema,
+  gameSettingsSchema,
+  lobbyStateSchema,
+} from "./shared";
 
 export const clientQuestionStateSchema = z.object({
   stage: z.literal("question"),
@@ -29,10 +33,6 @@ export const clientGameStateSchema = z.discriminatedUnion("stage", [
   clientQuestionStateSchema,
 ]);
 
-export const clientMessageSchema = z.object({
-  type: z.literal("message"),
-  content: z.string(),
-});
 export const clientKickSchema = z.object({
   type: z.literal("kickUser"),
   userId: z.string(),
@@ -44,10 +44,14 @@ export const clientAnswerQuestionSchema = z.object({
   type: z.literal("answerQuestion"),
   answer: z.string(),
 });
+export const clientUpdateGameSettingsSchema = z.object({
+  type: z.literal("updateGameSettings"),
+  settings: gameSettingsSchema,
+});
 
 export const protocolSchema = z.discriminatedUnion("type", [
-  clientMessageSchema,
   clientKickSchema,
   clientStartGameSchema,
   clientAnswerQuestionSchema,
+  clientUpdateGameSettingsSchema,
 ]);

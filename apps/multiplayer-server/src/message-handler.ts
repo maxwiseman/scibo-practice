@@ -81,13 +81,18 @@ export async function handleIncomingMessage(
               )
                 return [uId, userData];
               const userAnswer = currentChannelData.gameState.answers[uId];
+              const question = currentChannelData.gameState.question;
+              const settings = currentChannelData.gameSettings;
               return [
                 uId,
                 {
                   ...userData,
                   score:
                     userAnswer?.correct === "correct"
-                      ? userData.score + 1
+                      ? userData.score +
+                      (question.bonus
+                        ? settings.scoring.bonus
+                        : settings.scoring.correct)
                       : userData.score,
                 },
               ];
@@ -176,6 +181,14 @@ export async function handleIncomingMessage(
         correct: data.object.correct ? "correct" : "incorrect",
         time: answerTime,
         answer: msg.answer,
+      });
+      break;
+    }
+    case "updateGameSettings": {
+      currentChannelData.gameSettings = msg.settings;
+      publish(ws.data.room, {
+        type: "updateGameSettings",
+        settings: currentChannelData.gameSettings,
       });
       break;
     }

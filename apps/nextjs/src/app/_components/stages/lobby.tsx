@@ -23,6 +23,7 @@ import {
 import { Switch } from "@scibo/ui/switch";
 
 import websocketStore from "../websocket/xstate";
+import { GameSettingsDialog } from "./game-settings-dialog";
 
 export function Lobby() {
   const status = useSelector(websocketStore, (state) => state.context.status);
@@ -98,11 +99,9 @@ export function Lobby() {
             </h2>
           </div>
           <div className="flex gap-1">
-            {self.role === "host" && (
-              <GameSettingsDialog>
-                <Button size="icon" variant="outline" icon={<IconSettings />} />
-              </GameSettingsDialog>
-            )}
+            <GameSettingsDialog>
+              <Button size="icon" variant="outline" icon={<IconSettings />} />
+            </GameSettingsDialog>
             <Button
               onClick={() => {
                 websocketStore.send({ type: "disconnect" });
@@ -172,55 +171,55 @@ export function Lobby() {
   );
 }
 
-export function GameSettingsDialog({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <ResponsiveDialog>
-      <ResponsiveDialogTrigger>{children}</ResponsiveDialogTrigger>
-      <ResponsiveDialogContent>
-        <ResponsiveDialogHeader className="text-xl font-semibold">
-          Game Settings
-        </ResponsiveDialogHeader>
-        <form className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <LabeledSwitch
-              onChange={(e) => {
-                console.log(e);
-              }}
-              checked={false}
-              label="Timing"
-            />
-            <LabeledSwitch
-              onChange={(e) => {
-                console.log(e);
-              }}
-              checked={false}
-              label="Bonus Questions"
-            />
-            <LabeledSwitch
-              onChange={(e) => {
-                console.log(e);
-              }}
-              checked={false}
-              label="Overtime"
-            />
-            <LabeledSwitch
-              onChange={(e) => {
-                console.log(e);
-              }}
-              checked={false}
-              label="Teams"
-            />
-          </div>
-          <Button>Save</Button>
-        </form>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
-  );
-}
+// export function GameSettingsDialog({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) {
+//   return (
+//     <ResponsiveDialog>
+//       <ResponsiveDialogTrigger>{children}</ResponsiveDialogTrigger>
+//       <ResponsiveDialogContent>
+//         <ResponsiveDialogHeader className="text-xl font-semibold">
+//           Game Settings
+//         </ResponsiveDialogHeader>
+//         <form className="flex flex-col gap-4">
+//           <div className="grid grid-cols-2 gap-4">
+//             <LabeledSwitch
+//               onChange={(e) => {
+//                 console.log(e);
+//               }}
+//               checked={false}
+//               label="Timing"
+//             />
+//             <LabeledSwitch
+//               onChange={(e) => {
+//                 console.log(e);
+//               }}
+//               checked={false}
+//               label="Bonus Questions"
+//             />
+//             <LabeledSwitch
+//               onChange={(e) => {
+//                 console.log(e);
+//               }}
+//               checked={false}
+//               label="Overtime"
+//             />
+//             <LabeledSwitch
+//               onChange={(e) => {
+//                 console.log(e);
+//               }}
+//               checked={false}
+//               label="Teams"
+//             />
+//           </div>
+//           <Button>Save</Button>
+//         </form>
+//       </ResponsiveDialogContent>
+//     </ResponsiveDialog>
+//   );
+// }
 
 function LabeledSwitch({
   label,
