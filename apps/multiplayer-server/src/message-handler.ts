@@ -6,15 +6,11 @@ import { z } from "zod";
 import { eq, sql } from "@scibo/db";
 import { db } from "@scibo/db/client";
 import { Question } from "@scibo/db/schema";
-import {
-  clientGameStateSchema,
-  protocolSchema,
-} from "@scibo/multiplayer-server/from-client";
+import { protocolSchema } from "@scibo/multiplayer-server/from-client";
 
 import type { urlParams } from ".";
 import {
   serverAnswerSchema,
-  serverMessageSchema,
   protocolSchema as serverProtocolSchema,
   serverUpdateGameStateSchema,
 } from "./schema/from-server";
@@ -98,13 +94,31 @@ export async function handleIncomingMessage(
               ];
             }),
           );
-          Object.keys(currentChannelData.gameState.answers).forEach((uId) => {
-            const outgoingMsg: z.infer<typeof serverProtocolSchema> = {
-              type: "updateUsers",
-              users: currentChannelData.users,
-            };
-            currentChannelData.users[uId]?.ws.send(JSON.stringify(outgoingMsg));
-          });
+          // Object.keys(currentChannelData.gameState.answers).forEach((uId) => {
+          //   const outgoingMsg: z.infer<typeof serverProtocolSchema> = {
+          //     type: "updateUsers",
+          //     users: currentChannelData.users,
+          //   };
+          //   currentChannelData.users[uId]?.ws.send(JSON.stringify(outgoingMsg));
+          // });
+          const correctAnswer =
+            question.type === "multipleChoice"
+              ? question.answer.find((i) => i.correct)?.letter
+              : question.answer;
+          const updateUsersMsg: z.infer<typeof serverProtocolSchema> = {
+            type: "updateUsers",
+            users: currentChannelData.users,
+          };
+          const correctAnswerMsg: z.infer<typeof serverProtocolSchema> = {
+            type: "updateGameState",
+            state: {
+              ...currentChannelData.gameState,
+              correctAnswer,
+              explanation: question.explanation,
+            },
+          };
+          publish(ws.data.room, correctAnswerMsg);
+          publish(ws.data.room, updateUsersMsg);
           setTimeout(async () => {
             publish(ws.data.room, await nextQuestion(currentChannelData));
           }, 10000);

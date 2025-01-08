@@ -1,21 +1,19 @@
 "use client";
 
+import type { z } from "zod";
 import { useEffect, useState } from "react";
 import { IconArrowForward } from "@tabler/icons-react";
 import { isMobile } from "react-device-detect";
-import { z } from "zod";
 
-import { clientQuestionSchema } from "@scibo/multiplayer-server/shared";
+import type { clientQuestionSchema } from "@scibo/multiplayer-server/shared";
 import { Button } from "@scibo/ui/button";
 
-import type { sciboQuestion } from "./types";
 import { QuizMcqAnswers } from "./mcq-answers";
 import { QuizPrompt } from "./prompt";
 import { QuizShortAnswer } from "./short-answer";
 
 export function QuizQuestion({
   question,
-  debug,
   onSubmit,
 }: {
   // question: sciboQuestion & { qNumber: number };
@@ -57,14 +55,6 @@ export function QuizQuestion({
           onSelectChange={setAnswer}
           answers={question.answer}
         />
-      )}
-      {debug === true && (
-        <a
-          href={question.htmlUrl}
-          className="text-sm text-muted-foreground underline"
-        >
-          {question.topic}
-        </a>
       )}
 
       {isMobile === true ? (

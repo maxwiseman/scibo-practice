@@ -17,6 +17,7 @@ export const clientQuestionStateSchema = z.object({
     }),
   ),
   correctAnswer: z.string().optional(),
+  explanation: z.string().optional(),
   answers: z
     .record(
       z.string(),

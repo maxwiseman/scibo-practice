@@ -10,6 +10,14 @@ export function handleIncomingMessage(
   msg: z.infer<typeof protocolSchema>,
 ): Partial<websocketContext> {
   switch (msg.type) {
+    case "toast": {
+      if (msg.toastType === "info") toast.info(msg.content);
+      if (msg.toastType === "error") toast.error(msg.content);
+      if (msg.toastType === "warn") toast.warning(msg.content);
+      if (msg.toastType === "success") toast.success(msg.content);
+      return {};
+    }
+
     case "userJoin": {
       if (ctx.state.stage !== "lobby" && msg.user.role !== "spectator")
         toast.info(`${msg.user.username} has joined!`);
@@ -19,9 +27,9 @@ export function handleIncomingMessage(
     }
 
     case "userLeave": {
-      const { [msg.id]: omitted, ...rest } = ctx.users;
       if (ctx.state.stage !== "lobby")
         toast.info(`${ctx.users[msg.id]?.username} has left!`);
+      const { [msg.id]: omitted, ...rest } = ctx.users;
       return {
         users: rest,
       };

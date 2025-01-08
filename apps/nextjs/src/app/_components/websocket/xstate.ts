@@ -107,6 +107,7 @@ const websocketStore = createStore({
           socket: ws,
           messageEvent: event,
         });
+        console.log(websocketStore.getSnapshot().context);
       };
       return { status: "connecting" } as Partial<websocketContext>;
     },

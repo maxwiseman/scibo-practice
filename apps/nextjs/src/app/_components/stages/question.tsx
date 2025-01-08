@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconBan, IconCheck, IconStopwatch, IconX } from "@tabler/icons-react";
 import { useSelector } from "@xstate/store/react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import Latex from "react-latex-next";
 
 import { cn } from "@scibo/ui";
 import { Spinner } from "@scibo/ui/spinner";
@@ -11,7 +12,6 @@ import { Spinner } from "@scibo/ui/spinner";
 import { blurTransition } from "../blur-transition";
 import { QuizAnswers } from "../quiz/answers";
 import { QuizPrompt } from "../quiz/prompt";
-import { SpinText } from "../spin-text";
 import websocketStore from "../websocket/xstate";
 
 export function Question() {
@@ -20,6 +20,11 @@ export function Question() {
   const [answered, setAnswered] = useState<boolean[]>([]);
 
   if (state.stage !== "question") return null;
+  const correctAnswer =
+    state.question.type === "multipleChoice"
+      ? state.question.answer.find((i) => i.letter === state.correctAnswer)
+        ?.answer
+      : state.correctAnswer;
 
   return (
     <LayoutGroup>
@@ -67,6 +72,11 @@ export function Question() {
               {...blurTransition}
               className="flex w-[30rem] origin-top flex-col gap-4"
             >
+              {correctAnswer && (
+                <Latex
+                  delimiters={[{ left: "$$", right: "$$", display: false }]}
+                >{`${correctAnswer} - ${state.explanation}`}</Latex>
+              )}
               <Leaderboard />
             </motion.div>
           ) : (
@@ -108,7 +118,6 @@ export function Timer() {
       const time =
         (new Date().getTime() - state.question.asked.getTime()) / 1000;
       setTime(time);
-      console.log(parseInt(time.toString().split(".")[1] ?? "0"));
       if (!stop)
         setTimeout(
           updateTime,
@@ -190,6 +199,7 @@ export function Leaderboard() {
 
       return (
         <motion.div
+          {...blurTransition}
           layout="position"
           layoutId={`scorecard-${uId}`}
           key={`scorecard-${uId}`}
@@ -199,20 +209,30 @@ export function Leaderboard() {
           )}
         >
           <LayoutGroup>
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="wait">
               <motion.div key={`${uId}-icon${iconNumber}`} {...blurTransition}>
                 {icon}
-              </motion.div>{" "}
+              </motion.div>
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div key={`${uId}-uname`} className="w-max shrink-0">
                 {userData.username}
               </motion.div>
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
                 {...blurTransition}
                 key={`${uId}-answer${answer?.answer}`}
                 className="line-clamp-1 w-full shrink grow text-sm text-muted-foreground"
               >
-                {answer?.answer}
+                {state.question.type === "multipleChoice"
+                  ? state.question.answer.find(
+                    (a) => a.letter === answer?.answer,
+                  )?.answer
+                  : answer?.answer}
               </motion.div>
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
                 {...blurTransition}
                 key={`${uId}-score${userData.score}`}

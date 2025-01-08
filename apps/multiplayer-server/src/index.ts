@@ -19,7 +19,7 @@ export const server = Bun.serve<urlParams>({
   async fetch(req, server) {
     const url = new URL(req.url);
     if (url.pathname === "/ws") {
-      console.log(`Upgrading connection!`);
+      console.log("Upgrading connection!", getSearchParams(req.url)?.userId);
       const success = server.upgrade(req, {
         data: getSearchParams(req.url),
       });
@@ -60,8 +60,8 @@ export const server = Bun.serve<urlParams>({
       }
 
       const userDataParse = userSchema.safeParse({
-        id: ws.data.userId,
-        username: ws.data.username,
+        id: ws.data.userId.trim(),
+        username: ws.data.username.trim(),
         role: newRoom ? "host" : "player",
       });
       if (!userDataParse.success) {
@@ -81,7 +81,7 @@ export const server = Bun.serve<urlParams>({
     },
 
     close(ws, code, reason) {
-      console.log("Connection closed!", code, reason);
+      console.log("Connection closed!", code, reason, ws.data.username);
 
       const currentChannelData = storedData[ws.data.room];
       if (!currentChannelData) {

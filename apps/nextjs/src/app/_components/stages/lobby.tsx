@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IconCrown,
   IconLogout,
@@ -13,17 +13,10 @@ import { cn } from "@scibo/ui";
 import { Button } from "@scibo/ui/button";
 import { Card, CardContent, CardHeader } from "@scibo/ui/card";
 import { Input } from "@scibo/ui/input";
-import { Label } from "@scibo/ui/label";
-import {
-  ResponsiveDialog,
-  ResponsiveDialogContent,
-  ResponsiveDialogHeader,
-  ResponsiveDialogTrigger,
-} from "@scibo/ui/responsive-dialog";
-import { Switch } from "@scibo/ui/switch";
 
 import websocketStore from "../websocket/xstate";
 import { GameSettingsDialog } from "./game-settings-dialog";
+import { slangCheck, UsernameResponse } from "./username-response";
 
 export function Lobby() {
   const status = useSelector(websocketStore, (state) => state.context.status);
@@ -32,7 +25,23 @@ export function Lobby() {
     websocketStore,
     (state) => state.context.currentUser,
   );
+  const [showUsernameResponse, setShowUsernameResponse] = useState(false);
   const [starting, setStarting] = useState(false);
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (
+        (status === "connected" && event.key === "Space") ||
+        event.keyCode === 32
+      ) {
+        setShowUsernameResponse(!showUsernameResponse);
+      }
+    };
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [status]);
 
   if (status !== "connected" || self === null)
     return (
@@ -131,9 +140,10 @@ export function Lobby() {
 
         <CardContent className="grid grid-cols-4 gap-2 gap-x-4">
           {new Array(24).fill(null).map((_, i) => {
-            const user = Object.values(users)[i]!;
+            const user = Object.values(users)[i];
             return (
               <Button
+                key={user?.id ?? i}
                 variant="secondary"
                 disabled={
                   user === undefined ||
@@ -142,7 +152,7 @@ export function Lobby() {
                 onClick={() => {
                   websocketStore.send({
                     type: "sendMessage",
-                    message: { type: "kickUser", userId: user.id },
+                    message: { type: "kickUser", userId: user!.id },
                   });
                 }}
                 className={cn({ "cursor-default": self.role !== "host" })}
@@ -167,79 +177,14 @@ export function Lobby() {
           })}
         </CardContent>
       </Card>
+
+      {/* Little easter egg */}
+      {(slangCheck(self.username ?? "") || showUsernameResponse) && (
+        <UsernameResponse
+          forceVisible={showUsernameResponse}
+          username={self.username ?? ""}
+        />
+      )}
     </div>
   );
-}
-
-// export function GameSettingsDialog({
-//   children,
-// }: {
-//   children: React.ReactNode;
-// }) {
-//   return (
-//     <ResponsiveDialog>
-//       <ResponsiveDialogTrigger>{children}</ResponsiveDialogTrigger>
-//       <ResponsiveDialogContent>
-//         <ResponsiveDialogHeader className="text-xl font-semibold">
-//           Game Settings
-//         </ResponsiveDialogHeader>
-//         <form className="flex flex-col gap-4">
-//           <div className="grid grid-cols-2 gap-4">
-//             <LabeledSwitch
-//               onChange={(e) => {
-//                 console.log(e);
-//               }}
-//               checked={false}
-//               label="Timing"
-//             />
-//             <LabeledSwitch
-//               onChange={(e) => {
-//                 console.log(e);
-//               }}
-//               checked={false}
-//               label="Bonus Questions"
-//             />
-//             <LabeledSwitch
-//               onChange={(e) => {
-//                 console.log(e);
-//               }}
-//               checked={false}
-//               label="Overtime"
-//             />
-//             <LabeledSwitch
-//               onChange={(e) => {
-//                 console.log(e);
-//               }}
-//               checked={false}
-//               label="Teams"
-//             />
-//           </div>
-//           <Button>Save</Button>
-//         </form>
-//       </ResponsiveDialogContent>
-//     </ResponsiveDialog>
-//   );
-// }
-
-function LabeledSwitch({
-  label,
-  onChange,
-  checked,
-}: {
-  label?: string;
-  onChange?: (checked: boolean) => void;
-  checked?: boolean;
-}) {
-  return (
-    <Label className="flex items-center gap-3 text-base">
-      <Switch checked={checked} onCheckedChange={onChange} />
-      {label}
-    </Label>
-  );
-  // return (
-  //   <div className="flex w-max items-center justify-between gap-3">
-  //     <Switch onChange={onChange} />
-  //     {label && <Label>{label}</Label>}
-  //   </div>
-  // );
 }

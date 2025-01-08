@@ -63,6 +63,11 @@ export const serverUpdateGameSettingsSchema = z.object({
   type: z.literal("updateGameSettings"),
   settings: gameSettingsSchema,
 });
+export const serverToastSchema = z.object({
+  type: z.literal("toast"),
+  toastType: z.enum(["error", "warn", "info", "success"]).default("info"),
+  content: z.string(),
+});
 
 export const protocolSchema = z.discriminatedUnion("type", [
   serverUserJoinSchema,
@@ -71,4 +76,5 @@ export const protocolSchema = z.discriminatedUnion("type", [
   serverUpdateUserSchema,
   serverUpdateGameStateSchema,
   serverUpdateGameSettingsSchema,
+  serverToastSchema,
 ]);
