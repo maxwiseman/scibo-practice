@@ -10,12 +10,15 @@ import { protocolSchema } from "@scibo/multiplayer-server/from-client";
 
 import type { urlParams } from ".";
 import {
-  serverAnswerSchema,
   protocolSchema as serverProtocolSchema,
   serverUpdateGameStateSchema,
 } from "./schema/from-server";
-import { clientQuestionSchema, serverQuestionSchema } from "./schema/shared";
-import { channelData } from "./state";
+import {
+  clientQuestionSchema,
+  serverAnswerSchema,
+  serverQuestionSchema,
+} from "./schema/shared";
+import { channelData, storedData } from "./state";
 import { publish } from "./utils";
 
 export async function handleIncomingMessage(
@@ -35,6 +38,20 @@ export async function handleIncomingMessage(
 
     case "startGame": {
       if (currentChannelData.users[ws.data.userId]?.role !== "host") return;
+      if (currentChannelData.gameSettings.end.type === "time")
+        setTimeout(
+          () => {
+            const currentChannelData = storedData[ws.data.room];
+            publish(ws.data.room, {
+              type: "updateGameState",
+              state: {
+                stage: "results",
+                history: currentChannelData?.history ?? [],
+              },
+            });
+          },
+          currentChannelData.gameSettings.end.maxTime * 60 * 1000,
+        );
 
       publish(ws.data.room, await nextQuestion(currentChannelData));
       break;
@@ -212,6 +229,23 @@ export async function handleIncomingMessage(
 async function nextQuestion(
   currentChannelData: channelData,
 ): Promise<z.infer<typeof serverUpdateGameStateSchema>> {
+  const lastQuestionData =
+    currentChannelData.gameState.stage === "question"
+      ? currentChannelData.gameState.question
+      : undefined;
+
+  if (
+    currentChannelData.gameSettings.end.type === "questions" &&
+    (lastQuestionData?.qNumber ?? 0) >=
+    currentChannelData.gameSettings.end.maxQuestions
+  ) {
+    console.log("Game finished!", currentChannelData.history);
+    return {
+      type: "updateGameState",
+      state: { stage: "results", history: currentChannelData.history },
+    };
+  }
+
   const nextQuestionData = (
     await db
       .select()
@@ -220,11 +254,6 @@ async function nextQuestion(
       .orderBy(sql`RANDOM()`)
       .limit(1)
   )[0]! as typeof Question.$inferSelect;
-
-  const lastQuestionData =
-    currentChannelData.gameState.stage === "question"
-      ? currentChannelData.gameState.question
-      : undefined;
 
   console.log(nextQuestionData);
 
@@ -240,6 +269,14 @@ async function nextQuestion(
     },
     answers: {},
   };
+
+  currentChannelData.history = [
+    ...currentChannelData.history,
+    {
+      question: currentChannelData.gameState.question,
+      answers: currentChannelData.gameState.answers,
+    },
+  ];
 
   const outgoingMsg: z.infer<typeof serverUpdateGameStateSchema> = {
     type: "updateGameState",

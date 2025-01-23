@@ -1,22 +1,17 @@
 import { ServerWebSocket } from "bun";
 import { z } from "zod";
 
-import type { gameSettingsSchema, userSchema } from "./schema/shared";
+import type {
+  gameSettingsSchema,
+  historySchema,
+  userSchema,
+} from "./schema/shared";
 import { urlParams } from ".";
 import { clientGameStateSchema } from "./schema/from-client";
 import {
-  serverAnswerSchema,
   serverCatchupSchema,
   serverGameStateSchema,
 } from "./schema/from-server";
-import { serverQuestionSchema } from "./schema/shared";
-
-export const historySchema = z.array(
-  z.object({
-    question: serverQuestionSchema,
-    answers: serverAnswerSchema,
-  }),
-);
 
 export type channelData = {
   users: Record<

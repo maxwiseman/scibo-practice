@@ -1,41 +1,92 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconBan, IconCheck, IconStopwatch, IconX } from "@tabler/icons-react";
+import { IconBan, IconCheck, IconX } from "@tabler/icons-react";
+import { useMeasure } from "@uidotdev/usehooks";
 import { useSelector } from "@xstate/store/react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import Latex from "react-latex-next";
 
 import { cn } from "@scibo/ui";
+import { Input } from "@scibo/ui/input";
 import { Spinner } from "@scibo/ui/spinner";
 
 import { blurTransition } from "../blur-transition";
-import { QuizAnswers } from "../quiz/answers";
+import { QuizMcqButton } from "../quiz/mcq-answers";
 import { QuizPrompt } from "../quiz/prompt";
 import websocketStore from "../websocket/xstate";
+import { Timer } from "./timer";
 
 export function Question() {
   const state = useSelector(websocketStore, (state) => state.context.state);
+  const self = useSelector(
+    websocketStore,
+    (state) => state.context.currentUser,
+  );
+  const settings = useSelector(
+    websocketStore,
+    (state) => state.context.settings,
+  );
   const users = useSelector(websocketStore, (state) => state.context.users);
   const [answered, setAnswered] = useState<boolean[]>([]);
+  const [answer, setAnswer] = useState("");
+  const [ref, bounds] = useMeasure();
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (
+        state.stage === "question" &&
+        (event.key === "Enter" || event.keyCode === 13)
+      ) {
+        if (answered[state.question.qNumber]) return;
+        websocketStore.send({
+          type: "sendMessage",
+          message: { type: "answerQuestion", answer },
+        });
+        // const answeredCopy = [...answered];
+        // answeredCopy[state.question.qNumber] = true;
+        setAnswered((prev) => {
+          const adjusted = [...prev];
+          adjusted[state.question.qNumber] = true;
+          return adjusted;
+        });
+      }
+    };
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [answer, answered, state]);
+
+  useEffect(() => {
+    setAnswer("");
+    // @ts-expect-error -- this is fine, typescript just doesn't like it
+  }, [state.question.qNumber]);
 
   if (state.stage !== "question") return null;
-  const correctAnswer =
-    state.question.type === "multipleChoice"
-      ? state.question.answer.find((i) => i.letter === state.correctAnswer)
-        ?.answer
-      : state.correctAnswer;
+  // const correctAnswer =
+  //   state.question.type === "multipleChoice"
+  //     ? state.question.answer.find((i) => i.letter === state.correctAnswer)
+  //       ?.answer
+  //     : state.correctAnswer;
+  const allAnswered =
+    Object.values(users).filter((i) => i.role === "host" || i.role === "player")
+      .length === Object.keys(state.answers ?? {}).length;
 
   return (
-    <LayoutGroup>
-      <div
-        className={cn(
-          "flex h-full min-h-max w-full max-w-[60rem] flex-col items-center justify-center gap-10",
-          // { "justify-between": answered[state.question.qNumber] === true },
+    <>
+      <AnimatePresence>
+        {allAnswered && (
+          <motion.div
+            initial={{ scaleX: "0%" }}
+            exit={{ translateY: "-2000%" }}
+            animate={{ translateY: "0%", scaleX: "100%" }}
+            className="fixed top-0 h-2 w-full origin-left bg-foreground"
+            transition={{ duration: 10, type: "linear" }}
+          />
         )}
-      >
-        <AnimatePresence mode="popLayout">
-          {answered[state.question.qNumber] !== true && (
+        {settings.timing.enabled === true &&
+          answered[state.question.qNumber] !== true && (
             <motion.div
               key="timer"
               className="fixed top-10"
@@ -44,212 +95,139 @@ export function Question() {
               <Timer />
             </motion.div>
           )}
-          {Object.values(users).filter(
-            (i) => i.role === "host" || i.role === "player",
-          ).length === Object.keys(state.answers ?? {}).length && (
-              <motion.div
-                initial={{ scaleX: "0%" }}
-                exit={{ translateY: "-2000%" }}
-                animate={{ translateY: "0%", scaleX: "100%" }}
-                className="fixed top-0 h-2 w-full origin-left bg-foreground"
-                transition={{ duration: 10, type: "linear" }}
-              />
-            )}
+      </AnimatePresence>
+      <div
+        className={cn(
+          "flex h-full min-h-max w-full max-w-[60rem] flex-col items-center justify-center space-y-10",
+          // { "justify-between": answered[state.question.qNumber] === true },
+        )}
+      >
+        <AnimatePresence mode="popLayout">
           <motion.div
             {...blurTransition}
-            layout="position"
-            layoutId={`prompt-${state.question.qNumber}`}
-            key={`prompt-${state.question.qNumber}`}
-            // className="fixed top-8 w-[60rem]"
+            // layout="position"
+            // key="prompt"
+            key={state.question.qNumber}
             className="w-[60rem] origin-bottom"
           >
             <QuizPrompt {...state.question} prompt={state.question.question} />
           </motion.div>
+          {/* <div key="height-tester">{bounds.height}</div> */}
 
-          {answered[state.question.qNumber] === true ? (
+          <motion.div
+            className={"w-full"}
+            key={`answer-choices-${state.question.qNumber}`}
+            {...blurTransition}
+            animate={{
+              height: bounds.height ?? 0,
+              ...blurTransition.animate,
+            }}
+          >
+            <LayoutGroup>
+              <div
+                className={cn("w-full", {
+                  "grid w-full grid-cols-1 gap-8 md:grid-cols-2":
+                    state.question.type === "multipleChoice",
+                })}
+                ref={ref}
+              >
+                <AnimatePresence mode="popLayout">
+                  {state.question.type === "multipleChoice" ? (
+                    state.question.answer
+                      .sort((a, b) => a.letter.localeCompare(b.letter))
+                      .map((choice) =>
+                        state.correctAnswer !== choice.letter &&
+                        allAnswered ? null : (
+                          <motion.div
+                            layout
+                            key={`answer-choice-${choice.letter}-${state.question.qNumber}`}
+                            {...blurTransition}
+                          >
+                            <QuizMcqButton
+                              {...choice}
+                              text={choice.answer}
+                              selected={
+                                answer.toLowerCase() ===
+                                choice.letter.toLowerCase()
+                              }
+                              responses={state.answers}
+                              locked={answered[state.question.qNumber]}
+                              onSelectChange={() => {
+                                console.log("Changing", choice.letter);
+                                setAnswer(choice.letter);
+                              }}
+                            />
+                          </motion.div>
+                        ),
+                      )
+                  ) : answered[state.question.qNumber] ? (
+                    <motion.div
+                      {...blurTransition}
+                      key="response"
+                      className="flex items-center gap-2 text-muted-foreground"
+                    >
+                      <LayoutGroup>
+                        <AnimatePresence mode="popLayout">
+                          <motion.div
+                            {...blurTransition}
+                            key={state.answers?.[self?.id ?? ""]?.correct}
+                          >
+                            {state.answers?.[self?.id ?? ""]?.correct ===
+                              "correct" && <IconCheck />}
+                            {state.answers?.[self?.id ?? ""]?.correct ===
+                              "incorrect" && <IconX />}
+                            {state.answers?.[self?.id ?? ""]?.correct ===
+                              "grading" && <Spinner />}
+                            {state.answers?.[self?.id ?? ""]?.correct ===
+                              "skipped" && <IconBan />}
+                          </motion.div>
+                        </AnimatePresence>
+                        <motion.div layout key="response-text">
+                          {answer}
+                        </motion.div>
+                      </LayoutGroup>
+                    </motion.div>
+                  ) : (
+                    <motion.div key="text-input" {...blurTransition}>
+                      <Input
+                        onChange={(e) => {
+                          if (answered[state.question.qNumber]) return;
+                          console.log("Changing2", e.target.value);
+                          setAnswer(e.target.value);
+                        }}
+                        value={answer}
+                        placeholder="Type something..."
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </LayoutGroup>
+          </motion.div>
+          {state.explanation && (
             <motion.div
-              key={"leaderboard"}
+              key={state.explanation}
+              className="w-full text-muted-foreground"
               {...blurTransition}
-              className="flex w-[30rem] origin-top flex-col gap-4"
+              initial={{ height: 0, marginTop: 0, ...blurTransition.initial }}
+              animate={{
+                height: "auto",
+                marginTop: "2.5rem",
+                ...blurTransition.animate,
+              }}
             >
-              {correctAnswer && (
-                <Latex
-                  delimiters={[{ left: "$$", right: "$$", display: false }]}
-                >{`${correctAnswer} - ${state.explanation}`}</Latex>
-              )}
-              <Leaderboard />
-            </motion.div>
-          ) : (
-            <motion.div
-              className="w-full"
-              key={"answer-choices"}
-              {...blurTransition}
-            >
-              <QuizAnswers
-                question={state.question}
-                onSubmit={(val) => {
-                  websocketStore.send({
-                    type: "sendMessage",
-                    message: { type: "answerQuestion", answer: val },
-                  });
-                  const answeredCopy = [...answered];
-                  answeredCopy[state.question.qNumber] = true;
-                  setAnswered(answeredCopy);
-                }}
-              />
+              <Latex
+                delimiters={[
+                  { left: "$$", right: "$$", display: false },
+                  { left: "$", right: "$", display: false },
+                ]}
+              >
+                {state.explanation ?? ""}
+              </Latex>
             </motion.div>
           )}
         </AnimatePresence>
-        <div />
       </div>
-    </LayoutGroup>
-  );
-}
-
-export function Timer() {
-  const state = useSelector(websocketStore, (state) => state.context.state);
-  const [time, setTime] = useState(0);
-  useEffect(() => {
-    if (state.stage !== "question") return;
-    let stop = false;
-
-    function updateTime() {
-      if (state.stage !== "question") return;
-      const time =
-        (new Date().getTime() - state.question.asked.getTime()) / 1000;
-      setTime(time);
-      if (!stop)
-        setTimeout(
-          updateTime,
-          100 - parseInt(time.toString().split(".")[1] ?? "0"),
-        );
-    }
-    // const interval = setTimeout(() => {
-    //   setTime(state.question.asked.getTime() - new Date().getTime());
-    updateTime();
-    // }, 1000);
-
-    return () => {
-      stop = true;
-      // clearInterval(interval);
-    };
-  }, [state]);
-
-  if (state.stage !== "question") return null;
-  const remainingTime = state.question.questionTime - Math.round(time);
-
-  const minutes = String(Math.floor(Math.round(remainingTime) / 60)).padStart(
-    2,
-    "0",
-  );
-  const seconds = String(Math.round(Math.abs(remainingTime)) % 60).padStart(
-    2,
-    "0",
-  );
-
-  return (
-    <div className="flex items-center gap-1 text-lg text-muted-foreground">
-      <IconStopwatch className="h-5 w-5" />
-      {/* {`${minutes}:${seconds}`} */}
-      {`${remainingTime}s`}
-    </div>
-  );
-}
-
-export function Leaderboard() {
-  const state = useSelector(websocketStore, (state) => state.context.state);
-  const users = useSelector(websocketStore, (state) => state.context.users);
-  const self = useSelector(
-    websocketStore,
-    (state) => state.context.currentUser,
-  );
-
-  if (state.stage !== "question") return null;
-
-  const scoreCards = Object.entries(users)
-    .sort(([uId, userData], [uId2, userData2]) => {
-      if (userData.role !== "host" && userData.role !== "player") return 0;
-      if (userData2.role !== "host" && userData2.role !== "player") return 0;
-      return userData2.score - userData.score;
-    })
-    .map(([uId, userData]) => {
-      const answer = state.answers?.[uId];
-      let icon: React.ReactNode = <></>;
-      let iconNumber = 0;
-      switch (answer?.correct) {
-        case "correct":
-          icon = <IconCheck className="h-6 w-6" />;
-          iconNumber = 1;
-          break;
-        case "incorrect":
-          icon = <IconX className="h-6 w-6" />;
-          iconNumber = 2;
-          break;
-        case "skipped":
-          icon = <IconBan className="h-6 w-6" />;
-          iconNumber = 3;
-          break;
-        default:
-          icon = <Spinner className="h-6 w-6" />;
-          iconNumber = 4;
-          break;
-      }
-
-      if (userData.role !== "host" && userData.role !== "player") return null;
-
-      return (
-        <motion.div
-          {...blurTransition}
-          layout="position"
-          layoutId={`scorecard-${uId}`}
-          key={`scorecard-${uId}`}
-          className={cn(
-            "flex w-full items-center gap-4 rounded-md bg-muted px-4 py-2 text-2xl",
-            { "text-muted-foreground": uId !== self?.id },
-          )}
-        >
-          <LayoutGroup>
-            <AnimatePresence mode="wait">
-              <motion.div key={`${uId}-icon${iconNumber}`} {...blurTransition}>
-                {icon}
-              </motion.div>
-            </AnimatePresence>
-            <AnimatePresence mode="wait">
-              <motion.div key={`${uId}-uname`} className="w-max shrink-0">
-                {userData.username}
-              </motion.div>
-            </AnimatePresence>
-            <AnimatePresence mode="wait">
-              <motion.div
-                {...blurTransition}
-                key={`${uId}-answer${answer?.answer}`}
-                className="line-clamp-1 w-full shrink grow text-sm text-muted-foreground"
-              >
-                {state.question.type === "multipleChoice"
-                  ? state.question.answer.find(
-                    (a) => a.letter === answer?.answer,
-                  )?.answer
-                  : answer?.answer}
-              </motion.div>
-            </AnimatePresence>
-            <AnimatePresence mode="wait">
-              <motion.div
-                {...blurTransition}
-                key={`${uId}-score${userData.score}`}
-              >
-                {userData.score}
-              </motion.div>
-              {/* <div key={`${uId}-score`}> */}
-              {/*   <SpinText>{userData.score}</SpinText> */}
-              {/* </div> */}
-            </AnimatePresence>
-          </LayoutGroup>
-        </motion.div>
-      );
-    });
-  return (
-    <LayoutGroup>
-      <AnimatePresence mode="popLayout">{scoreCards}</AnimatePresence>
-    </LayoutGroup>
+    </>
   );
 }

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.8",
+    "@number-flow/react": "^0.5.5",
     "@scibo/api": "workspace:*",
     "@scibo/auth": "workspace:*",
     "@scibo/db": "workspace:*",

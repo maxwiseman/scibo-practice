@@ -2,6 +2,10 @@ import { z } from "zod";
 
 import { topicEnum } from "@scibo/db/types";
 
+// import { serverAnswerSchema } from "./from-server";
+
+// import { historySchema } from "../state";
+
 export const userPlayerSchema = z.object({
   id: z.string(),
   username: z.string(),
@@ -19,6 +23,11 @@ export const userSchema = z.discriminatedUnion("role", [
   userPlayerSchema,
   userSpectatorSchema,
 ]);
+export const serverAnswerSchema = z.object({
+  time: z.coerce.date(),
+  answer: z.string(),
+  correct: z.enum(["incorrect", "correct", "skipped", "grading"]),
+});
 
 export const serverMcqAnswerSchema = z.object({
   answer: z.coerce.string(),
@@ -90,8 +99,19 @@ export const clientQuestionSchema = z.discriminatedUnion("type", [
   clientMcqQuestionSchema,
 ]);
 
-export const gameStages = z.enum(["lobby", "question"]);
+export const historySchema = z.array(
+  z.object({
+    question: serverQuestionSchema,
+    answers: z.record(z.string(), serverAnswerSchema),
+  }),
+);
+
+export const gameStages = z.enum(["lobby", "question", "results"]);
 export const lobbyStateSchema = z.object({ stage: z.literal("lobby") });
+export const resultsStateSchema = z.object({
+  stage: z.literal("results"),
+  history: historySchema,
+});
 
 export const gameSettingsSchema = z.object({
   timing: z

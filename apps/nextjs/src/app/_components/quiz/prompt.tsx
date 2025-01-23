@@ -33,7 +33,12 @@ export function QuizPrompt({
         )}
         {...props}
       >
-        <Latex delimiters={[{ left: "$$", right: "$$", display: false }]}>
+        <Latex
+          delimiters={[
+            { left: "$$", right: "$$", display: false },
+            { left: "$", right: "$", display: false },
+          ]}
+        >
           {prompt}
         </Latex>
       </h2>

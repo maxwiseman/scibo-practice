@@ -4,7 +4,19 @@ import {
   clientQuestionSchema,
   gameSettingsSchema,
   lobbyStateSchema,
+  resultsStateSchema,
 } from "./shared";
+
+export const clientAnswerSchema = z
+  .record(
+    z.string(),
+    z.object({
+      time: z.coerce.date(),
+      answer: z.string(),
+      correct: z.enum(["correct", "incorrect", "skipped", "grading"]),
+    }),
+  )
+  .optional();
 
 export const clientQuestionStateSchema = z.object({
   stage: z.literal("question"),
@@ -18,19 +30,11 @@ export const clientQuestionStateSchema = z.object({
   ),
   correctAnswer: z.string().optional(),
   explanation: z.string().optional(),
-  answers: z
-    .record(
-      z.string(),
-      z.object({
-        time: z.coerce.date(),
-        answer: z.string(),
-        correct: z.enum(["correct", "incorrect", "skipped", "grading"]),
-      }),
-    )
-    .optional(),
+  answers: clientAnswerSchema,
 });
 export const clientGameStateSchema = z.discriminatedUnion("stage", [
   lobbyStateSchema,
+  resultsStateSchema,
   clientQuestionStateSchema,
 ]);
 

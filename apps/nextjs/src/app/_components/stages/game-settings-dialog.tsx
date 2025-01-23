@@ -30,6 +30,13 @@ import {
 } from "@scibo/ui/dialog";
 import { Input } from "@scibo/ui/input";
 import { Label } from "@scibo/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@scibo/ui/select";
 import { Separator } from "@scibo/ui/separator";
 import {
   Sidebar,
@@ -181,6 +188,13 @@ export function GameSettingsDialog({
                   setGameSettings={updateState}
                 />
               )}
+              {activeTab === "Ending" && (
+                <GameSettingsEnding
+                  host={self?.role === "host"}
+                  gameSettings={gameSettings}
+                  setGameSettings={updateState}
+                />
+              )}
             </div>
           </main>
         </SidebarProvider>
@@ -199,7 +213,7 @@ export function SettingsField({
   description?: string;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <Label>{label}</Label>
       {children}
       <p className="text-[0.8rem] text-muted-foreground">{description}</p>
@@ -342,6 +356,81 @@ export function GameSettingsScoring({
           disabled={host === false}
         />
       </SettingsField>
+    </div>
+  );
+}
+
+export function GameSettingsEnding({
+  gameSettings,
+  setGameSettings,
+  host,
+}: {
+  gameSettings: z.infer<typeof gameSettingsSchema>;
+  setGameSettings: (
+    arg0: DeepPartial<z.infer<typeof gameSettingsSchema>>,
+  ) => void;
+  host?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <SettingsField label="Ending Type">
+        <Select
+          onValueChange={(e) => {
+            setGameSettings({
+              end: {
+                type: e as "time" | "questions",
+              },
+            });
+          }}
+          value={gameSettings.end.type.toString()}
+          disabled={host === false}
+        >
+          <SelectTrigger className="w-64">
+            <SelectValue placeholder="Select one..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="time">Time</SelectItem>
+            <SelectItem value="questions">Question Count</SelectItem>
+          </SelectContent>
+        </Select>
+      </SettingsField>
+      {gameSettings.end.type === "time" ? (
+        <SettingsField label="Max Time (mins)">
+          <Input
+            type="number"
+            onChange={(e) => {
+              setGameSettings({
+                end: {
+                  maxTime:
+                    parseInt(e.target.value === "" ? "0" : e.target.value) ?? 0,
+                },
+              });
+            }}
+            min={1}
+            value={gameSettings.end.maxTime?.toString()}
+            placeholder="Type something..."
+            disabled={host === false}
+          />
+        </SettingsField>
+      ) : (
+        <SettingsField label="Max Questions">
+          <Input
+            type="number"
+            onChange={(e) => {
+              setGameSettings({
+                end: {
+                  maxQuestions:
+                    parseInt(e.target.value === "" ? "0" : e.target.value) ?? 0,
+                },
+              });
+            }}
+            min={1}
+            value={gameSettings.end.maxQuestions?.toString()}
+            placeholder="Type something..."
+            disabled={host === false}
+          />
+        </SettingsField>
+      )}
     </div>
   );
 }

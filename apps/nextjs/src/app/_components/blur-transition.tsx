@@ -1,6 +1,11 @@
 import type { MotionProps } from "motion/react";
 
-export const blurTransition: MotionProps = {
+type ObjectOnly<T> = T extends object ? T : never;
+export const blurTransition: {
+  animate: ObjectOnly<MotionProps["animate"]>;
+  exit: ObjectOnly<MotionProps["exit"]>;
+  initial: ObjectOnly<MotionProps["initial"]>;
+} = {
   exit: {
     // y: -25,
     opacity: 0,
