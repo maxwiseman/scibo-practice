@@ -23,7 +23,7 @@ export function Results() {
   if (state.stage !== "results") return null;
   return (
     <div className="mt-56 flex flex-col items-center gap-10">
-      <div className="flex w-full max-w-[35rem] gap-2">
+      <div className="flex w-full max-w-[35rem] flex-col gap-2">
         {Object.entries(users)
           .sort(([_, userData1], [__, userData2]) =>
             userData1.role !== "spectator" && userData2.role !== "spectator"
@@ -72,7 +72,7 @@ export function Results() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-6 text-muted-foreground">
-              {q.question.type === "multipleChoice" && (
+              {q.question.type === "multipleChoice" ? (
                 <div className="grid grid-cols-2 gap-2">
                   {q.question.answer.map((a) => (
                     <div
@@ -91,6 +91,15 @@ export function Results() {
                       <span className="mt-1">{a.answer}</span>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <div
+                  className={cn({
+                    "font-bold text-foreground":
+                      q.answers[self?.id ?? ""]?.correct,
+                  })}
+                >
+                  {q.question.answer}
                 </div>
               )}
               <div>
