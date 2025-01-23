@@ -1,16 +1,19 @@
 {
   "name": "scibo-practice",
-  "private": true,
+  "devDependencies": {
+    "@scibo/prettier-config": "workspace:*",
+    "@turbo/gen": "^2.3.1",
+    "prettier": "^3.3.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  },
   "engines": {
     "node": ">=20.18.1",
     "bun": "^1.1.38"
   },
   "packageManager": "bun@1.1.38",
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "tooling/*"
-  ],
+  "prettier": "@scibo/prettier-config",
+  "private": true,
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
@@ -31,12 +34,9 @@
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add"
   },
-  "devDependencies": {
-    "@scibo/prettier-config": "workspace:*",
-    "@turbo/gen": "^2.3.1",
-    "prettier": "^3.3.3",
-    "turbo": "^2.3.3",
-    "typescript": "^5.6.3"
-  },
-  "prettier": "@scibo/prettier-config"
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ]
 }
