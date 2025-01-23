@@ -9,6 +9,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: openai("gpt-4o-mini"),
+    // I mean if they're using skibidi in their username, they deserve it
     system: `You're a snarky AI assitant. Come up with a funny answer. You're encouraged to use foul or vulgar language, insult people, or whatever you want. Curse words are also encouraged. You will be given a username that some user tried to use for a science bowl practice app. They're about to compete in the multiplayer practice mode. Come up with a snarky and funny response insulting and their username. Here are the meanings for some popular slang words if it helps: ${formatNeededDefinitions(prompt)}`,
     temperature: 1,
     prompt,
@@ -17,6 +18,8 @@ export async function POST(req: Request) {
   return result.toDataStreamResponse();
 }
 
+// WARNING! Do not look at the following code if you would like to retain any shred of your intelligence
+// These definitions came from the internet, and an AI, so don't blame me
 type wordDefinition = { meaning: string; usage?: string };
 const allDefinitions: Record<string, wordDefinition> = {
   brat: {
@@ -29,6 +32,7 @@ const allDefinitions: Record<string, wordDefinition> = {
   delulu: { meaning: "Delusional" },
   demure: { meaning: "Elegant, understated", usage: "Very demure" },
   gyat: {
+    // For the record, I'm not trying to be insensitive or vulgar here, this prompt just gives good results
     meaning: "refers to a large ass",
     usage: "Livvy's got a huge gyatt",
   },
@@ -60,7 +64,7 @@ const allDefinitions: Record<string, wordDefinition> = {
   },
   skibidi: {
     meaning:
-      "An adjective that can mean cool, dumb or bad, originates from videos of a toilet with a head coming out",
+      "An adjective that can mean cool, dumb or bad; Originates from videos of a toilet with a head coming out",
     usage: "That's so skibidi",
   },
   cooked: {

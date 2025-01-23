@@ -12,6 +12,8 @@ import "~/app/globals.css";
 
 import { Analytics } from "@vercel/analytics/react";
 
+import { TooltipProvider } from "@scibo/ui/tooltip";
+
 import { env } from "~/env";
 
 export const metadata: Metadata = {
@@ -53,9 +55,11 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       >
         <Analytics />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <TRPCReactProvider>{props.children}</TRPCReactProvider>
+          <TooltipProvider>
+            <TRPCReactProvider>{props.children}</TRPCReactProvider>
+          </TooltipProvider>
           {env.NODE_ENV === "development" && (
-            <div className="absolute bottom-4 right-4">
+            <div className="fixed bottom-4 right-4">
               <ThemeToggle />
             </div>
           )}

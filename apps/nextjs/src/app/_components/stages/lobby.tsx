@@ -121,7 +121,10 @@ export function Lobby() {
             />
             {self.role === "host" && (
               <Button
-                disabled={Object.keys(users).length <= 1}
+                disabled={
+                  Object.keys(users).length <=
+                  (process.env.NODE_ENV === "development" ? 0 : 1)
+                }
                 loading={starting}
                 className="ml-1 w-max"
                 onClick={() => {
