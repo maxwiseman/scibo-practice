@@ -96,7 +96,7 @@ export function Results() {
                 <div
                   className={cn({
                     "font-bold text-foreground":
-                      q.answers[self?.id ?? ""]?.correct,
+                      q.answers[self?.id ?? ""]?.correct === "correct",
                   })}
                 >
                   {q.question.answer}

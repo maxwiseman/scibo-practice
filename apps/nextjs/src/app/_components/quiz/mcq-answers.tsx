@@ -138,7 +138,7 @@ export function QuizMcqButton({
         //   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md p-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
         // )}
         className={cn(
-          "flex gap-6 rounded-md transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-100",
+          "flex gap-6 rounded-md transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50",
           { "cursor-default": locked, "opacity-50": locked && !selected },
 
           className,
