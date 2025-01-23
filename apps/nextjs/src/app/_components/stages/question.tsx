@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconBan, IconCheck, IconX } from "@tabler/icons-react";
+import { IconBan, IconChartBar, IconCheck, IconX } from "@tabler/icons-react";
 import { useMeasure } from "@uidotdev/usehooks";
 import { useSelector } from "@xstate/store/react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import Latex from "react-latex-next";
 
 import { cn } from "@scibo/ui";
+import { Button } from "@scibo/ui/button";
 import { Input } from "@scibo/ui/input";
 import { Spinner } from "@scibo/ui/spinner";
 
 import { blurTransition } from "../blur-transition";
+import { LeaderboardModal } from "../leaderboard-modal";
 import { QuizMcqButton } from "../quiz/mcq-answers";
 import { QuizPrompt } from "../quiz/prompt";
 import websocketStore from "../websocket/xstate";
@@ -75,6 +77,14 @@ export function Question() {
 
   return (
     <>
+      <LeaderboardModal>
+        <Button
+          size="icon"
+          variant="outline"
+          className="fixed right-8 top-8"
+          icon={<IconChartBar />}
+        />
+      </LeaderboardModal>
       <AnimatePresence>
         {allAnswered && (
           <motion.div
@@ -137,7 +147,7 @@ export function Question() {
                       .sort((a, b) => a.letter.localeCompare(b.letter))
                       .map((choice) =>
                         state.correctAnswer !== choice.letter &&
-                        allAnswered ? null : (
+                          allAnswered ? null : (
                           <motion.div
                             layout
                             key={`answer-choice-${choice.letter}-${state.question.qNumber}`}
