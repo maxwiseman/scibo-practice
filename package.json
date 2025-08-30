@@ -2,7 +2,7 @@
   "name": "scibo-practice",
   "devDependencies": {
     "@scibo/prettier-config": "workspace:*",
-    "@turbo/gen": "^2.3.1",
+    "@turbo/gen": "^2.3.3",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",
     "typescript": "^5.6.3"
@@ -34,9 +34,5 @@
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "tooling/*"
-  ]
+  "workspaces": ["apps/*", "packages/*", "tooling/*"]
 }
