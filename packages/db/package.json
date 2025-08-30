@@ -5,46 +5,45 @@
   "type": "module",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
     "./client": {
+      "types": "./dist/client.d.ts",
       "default": "./src/client.ts"
     },
     "./schema": {
+      "types": "./dist/schema.d.ts",
       "default": "./src/schema.ts"
-    },
-    "./types": {
-      "default": "./src/types.ts"
     }
   },
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
-    "push": "bun with-env drizzle-kit push",
-    "generate": "bun with-env drizzle-kit generate:pg",
-    "update": "bun run generate && bun run push",
-    "studio": "bun with-env drizzle-kit studio",
+    "push": "bun run with-env drizzle-kit push",
+    "studio": "bun run with-env drizzle-kit studio",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
     "@vercel/postgres": "^0.10.0",
-    "drizzle-orm": "^0.36.4",
+    "drizzle-orm": "^0.35.1",
     "drizzle-zod": "^0.5.1",
-    "zod": "^3.23.8"
+    "zod": "3.23.8"
   },
   "devDependencies": {
-    "@scibo/eslint-config": "workspace:*",
-    "@scibo/prettier-config": "workspace:*",
-    "@scibo/tsconfig": "workspace:*",
-    "dotenv-cli": "^7.4.4",
-    "drizzle-kit": "^0.28.1",
-    "eslint": "^9.12.0",
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.3"
+    "@scibo/eslint-config": "0.3.0",
+    "@scibo/prettier-config": "0.1.0",
+    "@scibo/tsconfig": "0.1.0",
+    "dotenv-cli": "^7.4.2",
+    "drizzle-kit": "^0.26.2",
+    "eslint": "9.12.0",
+    "prettier": "3.3.3",
+    "typescript": "5.6.3"
   },
   "prettier": "@scibo/prettier-config"
 }

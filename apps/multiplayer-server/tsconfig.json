@@ -1,4 +1,0 @@
-{
-  "extends": "@scibo/tsconfig/base.json",
-  "include": ["src"]
-}

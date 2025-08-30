@@ -7,14 +7,13 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { Button } from "./button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 
 function ThemeToggle() {
-  const { setTheme, theme } = useTheme();
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -26,24 +25,15 @@ function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuCheckboxItem
-          checked={theme === "light"}
-          onClick={() => setTheme("light")}
-        >
+        <DropdownMenuItem onClick={() => setTheme("light")}>
           Light
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={theme === "dark"}
-          onClick={() => setTheme("dark")}
-        >
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
           Dark
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={theme === "system"}
-          onClick={() => setTheme("system")}
-        >
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
           System
-        </DropdownMenuCheckboxItem>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

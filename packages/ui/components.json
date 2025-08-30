@@ -12,7 +12,6 @@
   "aliases": {
     "utils": "@scibo/ui",
     "components": "src/",
-    "ui": "src/",
-    "hooks": "src/hooks"
+    "ui": "src/"
   }
 }

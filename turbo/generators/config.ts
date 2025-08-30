@@ -10,7 +10,7 @@ interface PackageJson {
 
 export default function generator(plop: PlopTypes.NodePlopAPI): void {
   plop.setGenerator("init", {
-    description: "Generate a new package for the Scibo monorepo",
+    description: "Generate a new package for the Acme Monorepo",
     prompts: [
       {
         type: "input",
@@ -79,12 +79,12 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
          * Install deps and format everything
          */
         if ("name" in answers && typeof answers.name === "string") {
-          // execSync("bun dlx sherif@latest --fix", {
+          // execSync("pnpm dlx sherif@latest --fix", {
           //   stdio: "inherit",
           // });
-          execSync("bun i", { stdio: "inherit" });
+          execSync("pnpm i", { stdio: "inherit" });
           execSync(
-            `bun prettier --write packages/${answers.name}/** --list-different`,
+            `pnpm prettier --write packages/${answers.name}/** --list-different`,
           );
           return "Package scaffolded";
         }

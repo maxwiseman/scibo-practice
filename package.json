@@ -1,27 +1,22 @@
 {
-  "name": "scibo-practice",
-  "devDependencies": {
-    "@scibo/prettier-config": "workspace:*",
-    "@turbo/gen": "^2.3.1",
-    "prettier": "^3.3.3",
-    "turbo": "^2.3.3",
-    "typescript": "^5.6.3"
-  },
-  "engines": {
-    "node": ">=20.18.1",
-    "bun": "^1.1.38"
-  },
-  "packageManager": "bun@1.1.38",
-  "prettier": "@scibo/prettier-config",
+  "name": "create-t3-turbo",
   "private": true,
+  "engines": {
+    "node": ">=20.16.0",
+    "bun": "^1.2.18"
+  },
+  "packageManager": "bun@1.2.18",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ],
   "scripts": {
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo run clean",
-    "download": "turbo -F @scibo/downloader download",
-    "upload:db": "turbo -F @scibo/downloader upload:db",
     "db:push": "turbo -F @scibo/db push",
-    "db:update": "turbo -F @scibo/db update",
+    "auth:generate": "turbo -F @scibo/auth generate",
     "db:studio": "turbo -F @scibo/db studio",
     "dev": "turbo watch dev --continue",
     "dev:next": "turbo watch dev -F @scibo/nextjs...",
@@ -29,14 +24,17 @@
     "format:fix": "turbo run format --continue -- --write --cache --cache-location .cache/.prettiercache",
     "lint": "turbo run lint --continue -- --cache --cache-location .cache/.eslintcache",
     "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location .cache/.eslintcache",
-    "lint:ws": "bunx sherif@latest",
-    "postinstall": "bun lint:ws",
+    "lint:ws": "bunx -y sherif@latest",
+    "postinstall": "bun run lint:ws",
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "tooling/*"
-  ]
+  "devDependencies": {
+    "@scibo/prettier-config": "0.1.0",
+    "@turbo/gen": "^2.1.3",
+    "prettier": "3.3.3",
+    "turbo": "^2.1.3",
+    "typescript": "5.6.3"
+  },
+  "prettier": "@scibo/prettier-config"
 }

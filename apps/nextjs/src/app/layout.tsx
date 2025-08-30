@@ -6,33 +6,22 @@ import { cn } from "@scibo/ui";
 import { ThemeProvider, ThemeToggle } from "@scibo/ui/theme";
 import { Toaster } from "@scibo/ui/toast";
 
-import { TRPCReactProvider } from "~/trpc/react";
+// import { TRPCReactProvider } from "~/trpc/react";
 
 import "~/app/globals.css";
-
-import { Analytics } from "@vercel/analytics/react";
-
-import { TooltipProvider } from "@scibo/ui/tooltip";
 
 import { env } from "~/env";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    env.VERCEL_ENV === "production"
-      ? "https://scibo.maxwiseman.io"
-      : "http://localhost:3000",
-  ),
-  title: "Science Bowl Practice",
-  description: "Simple app for practicing for the Science Bowl",
+  // metadataBase: new URL(
+  //   env.VERCEL_ENV === "production"
+  //     ? "https://turbo.t3.gg"
+  //     : "http://localhost:3000",
+  // ),
+  title: "Scibo Practice",
   openGraph: {
-    title: "Science Bowl Practice",
-    description: "Simple app for practicing for the Science Bowl",
-    url: "https://scibo.maxwiseman.io",
-    siteName: "Science Bowl Practice",
-  },
-  twitter: {
-    card: "summary_large_image",
-    creator: "@maxwiseman_",
+    title: "Scibo Practice",
+    siteName: "Scibo Practice",
   },
 };
 
@@ -45,24 +34,20 @@ export const viewport: Viewport = {
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
-    <html className="h-full" lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "h-full bg-background font-sans text-foreground antialiased",
+          "min-h-screen bg-background font-sans text-foreground antialiased",
           GeistSans.variable,
           GeistMono.variable,
         )}
       >
-        <Analytics />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <TooltipProvider>
-            <TRPCReactProvider>{props.children}</TRPCReactProvider>
-          </TooltipProvider>
-          {env.NODE_ENV === "development" && (
-            <div className="fixed bottom-4 right-4">
-              <ThemeToggle />
-            </div>
-          )}
+          {/* <TRPCReactProvider>{props.children}</TRPCReactProvider> */}
+          {props.children}
+          <div className="absolute bottom-4 right-4">
+            <ThemeToggle />
+          </div>
           <Toaster />
         </ThemeProvider>
       </body>

@@ -6,7 +6,7 @@ import { FlashList } from "@shopify/flash-list";
 
 import type { RouterOutputs } from "~/utils/api";
 import { api } from "~/utils/api";
-import { useSignIn, useSignOut, useUser } from "~/utils/auth";
+import { authClient, signIn, signOut } from "~/utils/auth";
 
 function PostCard(props: {
   post: RouterOutputs["post"]["all"][number];
@@ -96,18 +96,18 @@ function CreatePost() {
 }
 
 function MobileAuth() {
-  const user = useUser();
-  const signIn = useSignIn();
-  const signOut = useSignOut();
-
+  const { data: session } = authClient.useSession();
   return (
     <>
-      <Text className="pb-2 text-center text-xl font-semibold text-white">
-        {user?.name ?? "Not logged in"}
+      <Text className="pb-2 text-center text-xl font-semibold">
+        {session?.user.name ?? "Not logged in"}
       </Text>
       <Button
-        onPress={() => (user ? signOut() : signIn())}
-        title={user ? "Sign Out" : "Sign In With Discord"}
+        onPress={() => (session ? signOut() : signIn.social({
+          provider: "discord",
+          callbackURL: "/",
+        }))}
+        title={session ? "Sign Out" : "Sign In With Discord"}
         color={"#5B65E9"}
       />
     </>
@@ -116,8 +116,6 @@ function MobileAuth() {
 
 export default function Index() {
   const utils = api.useUtils();
-
-  const postQuery = api.post.all.useQuery();
 
   const deletePostMutation = api.post.delete.useMutation({
     onSettled: () => utils.post.all.invalidate(),
@@ -139,18 +137,6 @@ export default function Index() {
             Press on a post
           </Text>
         </View>
-
-        <FlashList
-          data={postQuery.data}
-          estimatedItemSize={20}
-          ItemSeparatorComponent={() => <View className="h-2" />}
-          renderItem={(p) => (
-            <PostCard
-              post={p.item}
-              onDelete={() => deletePostMutation.mutate(p.item.id)}
-            />
-          )}
-        />
 
         <CreatePost />
       </View>

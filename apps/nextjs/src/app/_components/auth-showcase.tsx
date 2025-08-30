@@ -1,9 +1,11 @@
-import { auth, signIn, signOut } from "@scibo/auth";
+import { getSession } from "@scibo/auth";
 import { Button } from "@scibo/ui/button";
+import { headers } from "next/headers";
+import { auth } from "@scibo/auth";
+import { redirect } from "next/navigation";
 
 export async function AuthShowcase() {
-  const session = await auth();
-
+  const session = await getSession();
   if (!session) {
     return (
       <form>
@@ -11,7 +13,13 @@ export async function AuthShowcase() {
           size="lg"
           formAction={async () => {
             "use server";
-            await signIn("discord");
+            const res = await auth.api.signInSocial({
+              body: {
+                provider: "discord",
+                callbackURL: "/",
+              },
+            });
+            redirect(res.url ?? "/");
           }}
         >
           Sign in with Discord
@@ -31,7 +39,10 @@ export async function AuthShowcase() {
           size="lg"
           formAction={async () => {
             "use server";
-            await signOut();
+            await auth.api.signOut({
+              headers: headers(),
+            });
+            throw redirect("/");
           }}
         >
           Sign out

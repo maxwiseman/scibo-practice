@@ -15,19 +15,5 @@ export default {
         mono: ["var(--font-geist-mono)", ...fontFamily.mono],
       },
     },
-    keyframes: {
-      spinner: {
-        from: { opacity: "1" },
-        to: { opacity: "0.15" },
-      },
-      skeleton: {
-        "0%": { "background-position": "100% 50%" },
-        "100%": { "background-position": "0% 50%" },
-      },
-    },
-    animation: {
-      skeleton: "skeleton 2s linear infinite",
-      spinner: "spinner 1.2s linear infinite",
-    },
   },
 } satisfies Config;

@@ -11,7 +11,7 @@ runs:
         cache: "pnpm"
 
     - shell: bash
-      run: bun add -g turbo
+      run: pnpm add -g turbo
 
     - shell: bash
-      run: bun install
+      run: pnpm install
