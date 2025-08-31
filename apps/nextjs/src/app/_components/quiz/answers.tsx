@@ -1,19 +1,19 @@
 "use client";
 
+import type { z } from "zod";
 import { useEffect, useState } from "react";
 import { IconArrowForward } from "@tabler/icons-react";
 import { useSelector } from "@xstate/store/react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { isMobile } from "react-device-detect";
-import { z } from "zod";
 
-import { clientAnswerSchema } from "@scibo/multiplayer-server/from-client";
-import { serverAnswerSchema } from "@scibo/multiplayer-server/from-server";
-import { clientQuestionSchema } from "@scibo/multiplayer-server/shared";
+import type { clientAnswerSchema } from "@scibo/multiplayer-server/from-client";
+// import { serverAnswerSchema } from "@scibo/multiplayer-server/from-server";
+import type { clientQuestionSchema } from "@scibo/multiplayer-server/shared";
 import { Button } from "@scibo/ui/button";
 
 import { blurTransition } from "../blur-transition";
-import websocketStore from "../websocket/xstate";
+// import websocketStore from "../websocket/xstate";
 import { QuizMcqAnswers } from "./mcq-answers";
 import { QuizShortAnswer } from "./short-answer";
 
@@ -34,7 +34,7 @@ export function QuizAnswers({
   onSubmit: (val: string) => void;
 }) {
   const [answer, setAnswer] = useState("");
-  const users = useSelector(websocketStore, (i) => i.context.users);
+  // const users = useSelector(websocketStore, (i) => i.context.users);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
