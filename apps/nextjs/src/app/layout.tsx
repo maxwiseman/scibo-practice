@@ -8,9 +8,7 @@ import { Toaster } from "@scibo/ui/toast";
 
 // import { TRPCReactProvider } from "~/trpc/react";
 
-import "~/app/globals.css";
-
-import { env } from "~/env";
+import "./globals.css";
 
 export const metadata: Metadata = {
   // metadataBase: new URL(

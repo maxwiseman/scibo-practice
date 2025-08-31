@@ -40,9 +40,9 @@ export async function AuthShowcase() {
           formAction={async () => {
             "use server";
             await auth.api.signOut({
-              headers: headers(),
+              headers: await headers(),
             });
-            throw redirect("/");
+            redirect("/");
           }}
         >
           Sign out
