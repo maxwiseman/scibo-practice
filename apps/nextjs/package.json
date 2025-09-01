@@ -22,9 +22,12 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@tanstack/react-query": "5.85.6",
     "geist": "^1.3.1",
+    "katex": "^0.16.22",
+    "motion": "^12.23.12",
     "next": "^15.5.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "react-latex-next": "^3.0.0",
     "superjson": "2.2.2",
     "tw-animate-css": "^1.3.7",
     "zod": "4.1.5"

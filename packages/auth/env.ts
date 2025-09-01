@@ -12,7 +12,6 @@ export const env = createEnv({
         : z.string().min(1).optional(),
     NODE_ENV: z.enum(["development", "production"]).optional(),
     DATABASE_URL: z.string().min(1),
-    DATABASE_AUTH_TOKEN: z.string().min(1),
   },
   client: {},
   experimental__runtimeEnv: {},

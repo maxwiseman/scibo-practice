@@ -1,9 +1,13 @@
-// import { Suspense } from "react";
+import { sql } from "@scibo/db";
+import { db } from "@scibo/db/client";
+import { HomeClient } from "./client";
 
-// import { AuthShowcase } from "./_components/auth-showcase";
+export default function Page() {
+  const data = db.query.question.findFirst({ orderBy: sql`random()` });
 
-// export const runtime = "edge";
-
-export default function HomePage() {
-  return <main className="container h-screen py-16"></main>;
+  return (
+    <main className="flex size-full items-center justify-center py-16">
+      <HomeClient data={data} />
+    </main>
+  );
 }
