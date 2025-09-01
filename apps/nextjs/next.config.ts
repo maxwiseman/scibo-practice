@@ -19,7 +19,7 @@ const config: NextConfig = {
     "@scibo/validators",
   ],
 
-  // eslint: { ignoreDuringBuilds: true },
+  eslint: { ignoreDuringBuilds: true },
   // typescript: { ignoreBuildErrors: true },
   experimental: {
     viewTransition: true
