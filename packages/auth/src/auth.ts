@@ -8,7 +8,7 @@ import { expo } from "@better-auth/expo";
 
 export const config = {
   database: drizzleAdapter(db, {
-    provider: "pg",
+    provider: "sqlite",
   }),
   secret: env.AUTH_SECRET,
   plugins: [oAuthProxy(), expo()],

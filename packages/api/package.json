@@ -19,9 +19,9 @@
     "@scibo/auth": "0.1.0",
     "@scibo/db": "0.1.0",
     "@scibo/validators": "0.1.0",
-    "@trpc/server": "11.0.0-rc.477",
-    "superjson": "2.2.1",
-    "zod": "3.23.8"
+    "@trpc/server": "11.5.0",
+    "superjson": "2.2.2",
+    "zod": "4.1.5"
   },
   "devDependencies": {
     "@scibo/eslint-config": "0.3.0",

@@ -8,9 +8,7 @@ import { Toaster } from "@scibo/ui/toast";
 
 // import { TRPCReactProvider } from "~/trpc/react";
 
-import "~/app/globals.css";
-
-import { env } from "~/env";
+import "./globals.css";
 
 export const metadata: Metadata = {
   // metadataBase: new URL(
@@ -34,10 +32,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className="h-full" lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans text-foreground antialiased",
+          "h-full bg-background text-foreground antialiased",
+          GeistSans.className,
           GeistSans.variable,
           GeistMono.variable,
         )}

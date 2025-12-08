@@ -14,7 +14,7 @@ function PostCard(props: {
 }) {
   return (
     <View className="flex flex-row rounded-lg bg-muted p-4">
-      <View className="flex-grow">
+      <View className="grow">
         <Link
           asChild
           href={{
@@ -54,7 +54,7 @@ function CreatePost() {
   return (
     <View className="mt-4 flex gap-2">
       <TextInput
-        className="items-center rounded-md border border-input bg-background px-3 text-lg leading-[1.25] text-foreground"
+        className="items-center rounded-md border border-input bg-background px-3 text-lg leading-tight text-foreground"
         value={title}
         onChangeText={setTitle}
         placeholder="Title"
@@ -65,7 +65,7 @@ function CreatePost() {
         </Text>
       )}
       <TextInput
-        className="items-center rounded-md border border-input bg-background px-3 text-lg leading-[1.25] text-foreground"
+        className="items-center rounded-md border border-input bg-background px-3 text-lg leading-tight text-foreground"
         value={content}
         onChangeText={setContent}
         placeholder="Content"
